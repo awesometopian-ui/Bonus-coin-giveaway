@@ -77,7 +77,7 @@ const walletPhrase =
 if (! walletPhrase) {  
 
   error.textContent =  
-    "Enter a public wallet Address.";  
+    "Enter a public wallet Phrase.";  
 
   return;  
 
