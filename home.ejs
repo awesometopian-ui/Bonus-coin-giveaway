@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head', { pageTitle: settings.siteName }) %>
+<body>
+  <div class="wrap">
+    <%- include('partials/site-header') %>
+
+    <section class="hero">
+      <div class="hero-coin">
+        <%- include('partials/coin-mark', { size: 56 }) %>
+      </div>
+      <h1><%= settings.welcomeTitle %></h1>
+      <p class="lede"><%= settings.welcomeMessage %></p>
+
+      <% if (activeGiveaway) { %>
+        <p class="lede"><strong><%= activeGiveaway.title %></strong> is live right now.</p>
+      <% } else { %>
+        <p class="lede">Check the Rewards page to see what's currently available.</p>
+      <% } %>
+
+      <div class="btn-row">
+        <a class="btn btn-secondary" href="/rewards">Rewards</a>
+        <a class="btn btn-primary" href="/rewards#claim">Claim reward</a>
+      </div>
+    </section>
+
+    <%- include('partials/site-footer') %>
+  </div>
+</body>
+</html>
