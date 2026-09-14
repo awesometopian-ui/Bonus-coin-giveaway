@@ -1,0 +1,449 @@
+body {
+margin: 0;
+min-height: 100vh;
+color: #f5f7fb;
+font-family: Arial, sans-serif;
+
+background:
+radial-gradient(
+circle at 50% 0,
+#2936a8,
+transparent 35rem
+),
+#070a11;
+}
+
+/* HEADER */
+
+header {
+height: 72px;
+padding: 0 7%;
+
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+border-bottom: 1px solid #202532;
+
+background: #080b12dd;
+}
+
+.brand {
+display: flex;
+align-items: center;
+gap: 10px;
+
+font-size: 12px;
+font-weight: 800;
+
+letter-spacing: 1.5px;
+}
+
+.coin {
+width: 37px;
+height: 37px;
+
+display: grid;
+place-items: center;
+
+border-radius: 50%;
+
+background:
+linear-gradient(
+145deg,
+#4d5cff,
+#713bff
+);
+
+font-size: 19px;
+}
+
+.badge {
+padding: 7px 10px;
+
+border-radius: 20px;
+
+background: #151a25;
+
+color: #aeb5c8;
+
+font-size: 10px;
+font-weight: bold;
+}
+
+/* MAIN */
+
+main {
+width: min(92%, 540px);
+
+margin: auto;
+
+padding: 60px 0 35px;
+}
+
+/* HERO */
+
+.hero {
+text-align: center;
+
+margin-bottom: 26px;
+}
+
+.eyebrow {
+color: #8a93ff;
+
+font-size: 10px;
+font-weight: 800;
+
+letter-spacing: 2px;
+}
+
+.hero h1 {
+margin: 10px 0;
+
+font-size: clamp(
+36px,
+9vw,
+52px
+);
+
+letter-spacing: -2px;
+}
+
+.hero p {
+color: #929bad;
+
+line-height: 1.6;
+}
+
+/* CARD */
+
+.card {
+padding: 28px;
+
+margin-bottom: 20px;
+
+border:
+1px solid #252b39;
+
+border-radius: 24px;
+
+background: #111621;
+
+box-shadow:
+0 25px 70px #0005;
+}
+
+/* QR DESIGN */
+
+.qr {
+position: relative;
+
+width: 190px;
+height: 190px;
+
+padding: 14px;
+
+margin:
+0 auto 24px;
+
+background: white;
+
+border-radius: 13px;
+
+overflow: hidden;
+}
+
+.grid {
+width: 100%;
+height: 100%;
+
+background:
+repeating-linear-gradient(
+90deg,
+#111 0 8px,
+transparent 8px 16px
+),
+repeating-linear-gradient(
+0deg,
+#111 0 8px,
+transparent 8px 16px
+);
+}
+
+.finder {
+position: absolute;
+
+width: 47px;
+height: 47px;
+
+background: white;
+
+border: 9px solid #111;
+
+z-index: 2;
+}
+
+.finder::after {
+content: "";
+
+position: absolute;
+
+inset: 7px;
+
+background: #111;
+}
+
+.one {
+top: 14px;
+left: 14px;
+}
+
+.two {
+top: 14px;
+right: 14px;
+}
+
+.three {
+bottom: 14px;
+left: 14px;
+}
+
+.qr strong {
+position: absolute;
+
+z-index: 4;
+
+left: 50%;
+top: 50%;
+
+transform:
+translate(-50%, -50%);
+
+padding: 7px;
+
+background: white;
+
+color: #111;
+
+font-size: 8px;
+}
+
+/* TEXT */
+
+h2 {
+text-align: center;
+
+margin:
+0 0 7px;
+}
+
+.muted {
+text-align: center;
+
+color: #7e889a;
+
+font-size: 12px;
+
+line-height: 1.5;
+}
+
+/* FORM */
+
+label {
+display: block;
+
+margin:
+20px 0 8px;
+
+font-size: 13px;
+
+font-weight: 700;
+}
+
+input {
+width: 100%;
+
+padding: 15px;
+
+border:
+1px solid #303849;
+
+border-radius: 13px;
+
+outline: none;
+
+color: white;
+
+background: #0b0f17;
+}
+
+input:focus {
+border-color: #6973ff;
+}
+
+.notice {
+color: #a6afbf;
+
+font-size: 11px;
+
+line-height: 1.5;
+}
+
+button {
+width: 100%;
+
+padding: 15px;
+
+border: 0;
+
+border-radius: 13px;
+
+color: white;
+
+font-weight: 800;
+
+cursor: pointer;
+
+background:
+linear-gradient(
+135deg,
+#4f5cff,
+#733dff
+);
+}
+
+button:disabled {
+opacity: .6;
+}
+
+.error {
+color: #ff8998;
+
+font-size: 12px;
+
+min-height: 18px;
+}
+
+/* RESULT */
+
+.hidden {
+display: none;
+}
+
+.check {
+width: 55px;
+height: 55px;
+
+margin:
+0 auto 15px;
+
+display: grid;
+
+place-items: center;
+
+border-radius: 50%;
+
+background: #20382b;
+
+color: #8df0ad;
+
+font-size: 25px;
+}
+
+.row {
+display: flex;
+
+justify-content:
+space-between;
+
+gap: 16px;
+
+padding: 13px;
+
+margin-top: 10px;
+
+border-radius: 12px;
+
+background: #0b0f17;
+
+font-size: 12px;
+}
+
+.row span {
+color: #7c8799;
+}
+
+.row b {
+max-width: 65%;
+
+overflow-wrap: anywhere;
+
+text-align: right;
+}
+
+.secondary {
+margin-top: 12px;
+
+background: #252c3a;
+}
+
+/* ADMIN */
+
+.admin h2 {
+font-size: 18px;
+}
+
+.admin table {
+width: 100%;
+
+margin-top: 15px;
+
+border-collapse: collapse;
+
+font-size: 10px;
+}
+
+.admin th,
+.admin td {
+padding: 8px;
+
+border-bottom:
+1px solid #252b39;
+
+text-align: left;
+}
+
+/* FOOTER */
+
+footer {
+color: #5f697b;
+
+text-align: center;
+
+font-size: 10px;
+
+line-height: 1.5;
+}
+
+/* MOBILE */
+
+@media(max-width:480px) {
+
+header {
+padding: 0 18px;
+}
+
+.brand span {
+font-size: 10px;
+}
+
+main {
+padding-top: 42px;
+}
+
+.card {
+padding: 22px;
+}
+
+}
