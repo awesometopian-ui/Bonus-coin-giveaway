@@ -3,24 +3,25 @@
 :root {
   --green: #159957;
   --green-dark: #087443;
-  --green-light: #eaf8f0;
-  --green-soft: #f4fbf7;
+  --green-deep: #064d2e;
+  --green-light: #dff5e9;
+  --green-soft: #effaf4;
 
   --gold: #f4c430;
-  --gold-light: #fff7d6;
+  --gold-dark: #c99b08;
+  --gold-light: #fff5c9;
 
   --white: #ffffff;
-  --bg: #f7faf8;
+  --bg: #eaf8f0;
 
-  --text: #10251b;
-  --text-soft: #52635a;
-  --border: #e1ebe5;
+  --text: #0c2519;
+  --text-soft: #52665b;
+  --border: #d7e9df;
 
   --danger: #d9364f;
-  --success: #159957;
 
-  --radius: 20px;
-  --shadow: 0 10px 35px rgba(16, 37, 27, 0.07);
+  --radius: 22px;
+  --shadow: 0 15px 45px rgba(6, 77, 46, 0.10);
 }
 
 * {
@@ -33,16 +34,21 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  min-height: 100vh;
+
   font-family: 'Inter', Arial, sans-serif;
+
+  color: var(--text);
+
+  background:
+    radial-gradient(circle at 5% 10%, rgba(255,255,255,.95) 0 110px, transparent 111px),
+    radial-gradient(circle at 95% 25%, rgba(244,196,48,.13) 0 150px, transparent 151px),
+    radial-gradient(circle at 10% 85%, rgba(21,153,87,.10) 0 180px, transparent 181px),
+    linear-gradient(135deg, #e9f8ef 0%, #f7fcf9 48%, #e3f5eb 100%);
+
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
-
-/* =========================
-   GENERAL
-========================= */
 
 img {
   max-width: 100%;
@@ -76,31 +82,37 @@ p {
 ========================= */
 
 .site-header {
-  min-height: 76px;
+  min-height: 82px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 20px;
   padding: 15px 0;
 }
 
 .site-name {
+  color: var(--text);
+
+  text-decoration: none;
+
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--text);
-  text-decoration: none;
 }
 
 .site-header nav {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 22px;
 }
 
 .site-header nav a {
   color: var(--text-soft);
+
   text-decoration: none;
-  font-size: 0.9rem;
+
+  font-size: .88rem;
   font-weight: 600;
 }
 
@@ -116,26 +128,29 @@ p {
   position: relative;
   overflow: hidden;
 
-  background: var(--white);
+  background: rgba(255,255,255,.97);
 
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,.9);
+
   border-radius: 28px;
 
-  padding: 42px 36px;
-  margin: 15px 0 25px;
+  padding: 40px 36px;
+
+  margin: 20px 0 25px;
 
   box-shadow: var(--shadow);
 }
 
 .hero::before {
   content: "";
+
   position: absolute;
 
-  width: 230px;
-  height: 230px;
+  width: 300px;
+  height: 300px;
 
-  right: -90px;
-  top: -100px;
+  right: -110px;
+  top: -150px;
 
   border-radius: 50%;
 
@@ -144,13 +159,14 @@ p {
 
 .hero::after {
   content: "";
+
   position: absolute;
 
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
 
-  right: 80px;
-  bottom: -60px;
+  right: 100px;
+  bottom: -105px;
 
   border-radius: 50%;
 
@@ -165,27 +181,29 @@ p {
 .hero-coin {
   display: inline-flex;
 
-  padding: 10px;
+  padding: 11px;
 
   background: var(--gold-light);
 
-  border: 1px solid #f0d36b;
+  border: 1px solid #efd675;
 
   border-radius: 18px;
 
   margin-bottom: 20px;
+
+  box-shadow: 0 8px 25px rgba(201,155,8,.12);
 }
 
 .hero h1 {
-  max-width: 700px;
+  max-width: 720px;
 
-  font-size: clamp(2.4rem, 7vw, 4.5rem);
+  font-size: clamp(2.5rem, 7vw, 4.6rem);
 
   margin-bottom: 18px;
 }
 
 .hero .lede {
-  max-width: 650px;
+  max-width: 670px;
 
   font-size: 1.05rem;
 
@@ -199,33 +217,36 @@ p {
 .btn-row {
   display: flex;
   flex-wrap: wrap;
+
   gap: 12px;
 
-  margin-top: 25px;
+  margin-top: 26px;
 }
 
 .btn {
-  min-height: 50px;
+  min-height: 51px;
 
   display: inline-flex;
+
   align-items: center;
   justify-content: center;
 
-  padding: 13px 23px;
+  padding: 13px 24px;
 
   border-radius: 13px;
 
   border: 1px solid transparent;
 
   font-family: inherit;
-  font-size: 0.92rem;
+
+  font-size: .92rem;
   font-weight: 700;
 
   text-decoration: none;
 
   cursor: pointer;
 
-  transition: 0.2s ease;
+  transition: .2s ease;
 }
 
 .btn:hover {
@@ -233,14 +254,15 @@ p {
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(.98);
 }
 
 .btn-primary {
   background: var(--green);
+
   color: white;
 
-  box-shadow: 0 8px 20px rgba(21, 153, 87, 0.18);
+  box-shadow: 0 9px 24px rgba(21,153,87,.22);
 }
 
 .btn-primary:hover {
@@ -249,9 +271,10 @@ p {
 
 .btn-secondary {
   background: white;
+
   color: var(--green-dark);
 
-  border-color: var(--green);
+  border-color: #9bd3b4;
 }
 
 .btn-secondary:hover {
@@ -260,18 +283,22 @@ p {
 
 .btn-small {
   min-height: 40px;
+
   padding: 9px 14px;
-  font-size: 0.8rem;
+
+  font-size: .8rem;
 }
 
 .btn-danger {
   background: #fff0f2;
+
   color: var(--danger);
+
   border-color: #ffd5da;
 }
 
 /* =========================
-   FEATURE CARDS
+   FEATURES
 ========================= */
 
 .features {
@@ -293,14 +320,15 @@ p {
 
   padding: 23px;
 
-  box-shadow: 0 6px 22px rgba(16, 37, 27, 0.04);
+  box-shadow: 0 8px 28px rgba(6,77,46,.06);
 }
 
 .feature-icon {
-  width: 45px;
-  height: 45px;
+  width: 47px;
+  height: 47px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -313,16 +341,18 @@ p {
 
 .feature h3 {
   font-size: 1rem;
+
   margin-bottom: 7px;
 }
 
 .feature p {
-  font-size: 0.85rem;
+  font-size: .85rem;
+
   margin: 0;
 }
 
 /* =========================
-   PANELS / CARDS
+   CARDS / PANELS
 ========================= */
 
 .panel {
@@ -332,7 +362,7 @@ p {
 
   border-radius: var(--radius);
 
-  padding: 26px;
+  padding: 27px;
 
   margin-top: 20px;
 
@@ -341,6 +371,7 @@ p {
 
 .panel-title {
   font-size: 1.35rem;
+
   margin-bottom: 7px;
 }
 
@@ -355,7 +386,7 @@ p {
 
   color: var(--green-dark);
 
-  font-size: 0.72rem;
+  font-size: .72rem;
 
   font-weight: 800;
 
@@ -364,13 +395,14 @@ p {
 
 .empty-state {
   text-align: center;
+
   padding: 50px 20px;
 
   color: var(--text-soft);
 }
 
 /* =========================
-   REWARD CARD
+   REWARDS
 ========================= */
 
 .reward-card {
@@ -400,11 +432,11 @@ p {
 
   border-radius: 999px;
 
-  background: var(--green-light);
+  background: var(--gold-light);
 
-  color: var(--green-dark);
+  color: #806200;
 
-  font-size: 0.72rem;
+  font-size: .72rem;
 
   font-weight: 800;
 }
@@ -424,7 +456,7 @@ p {
 
   color: var(--text);
 
-  font-size: 0.86rem;
+  font-size: .86rem;
 
   font-weight: 700;
 }
@@ -454,13 +486,15 @@ textarea {
   border-radius: 12px;
 
   font-family: inherit;
-  font-size: 0.92rem;
 
-  transition: 0.2s ease;
+  font-size: .92rem;
+
+  transition: .2s ease;
 }
 
 textarea {
   min-height: 120px;
+
   resize: vertical;
 }
 
@@ -473,19 +507,20 @@ textarea:focus {
 
   border-color: var(--green);
 
-  box-shadow: 0 0 0 4px rgba(21, 153, 87, 0.09);
+  box-shadow: 0 0 0 4px rgba(21,153,87,.10);
 }
 
 .field-error {
   color: var(--danger);
 
-  font-size: 0.8rem;
+  font-size: .8rem;
 
   margin-top: 5px;
 }
 
 .field-input-row {
   display: flex;
+
   gap: 8px;
 }
 
@@ -504,13 +539,13 @@ textarea:focus {
 
   background: var(--green-soft);
 
-  border: 1px solid #cfeadd;
+  border: 1px solid #c8e7d5;
 
   border-radius: 14px;
 
   color: var(--green-dark);
 
-  font-size: 0.85rem;
+  font-size: .85rem;
 
   margin: 18px 0;
 }
@@ -528,7 +563,7 @@ textarea:focus {
 
   color: var(--text-soft);
 
-  font-size: 0.85rem;
+  font-size: .85rem;
 
   cursor: pointer;
 }
@@ -570,6 +605,7 @@ textarea:focus {
   height: 65px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -599,13 +635,13 @@ textarea:focus {
 .value-row .label {
   color: var(--text-soft);
 
-  font-size: 0.8rem;
+  font-size: .8rem;
 }
 
 .value-row .value {
   font-weight: 700;
 
-  font-size: 0.88rem;
+  font-size: .88rem;
 
   text-align: right;
 
@@ -619,15 +655,15 @@ textarea:focus {
 .site-footer {
   margin-top: 45px;
 
-  padding: 28px 15px;
+  padding: 30px 15px;
 
   text-align: center;
 
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(8,116,67,.12);
 
   color: var(--text-soft);
 
-  font-size: 0.8rem;
+  font-size: .8rem;
 }
 
 /* =========================
@@ -637,14 +673,15 @@ textarea:focus {
 .admin-body {
   min-height: 100vh;
 
-  background: #f5f8f6;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(244,196,48,.12), transparent 220px),
+    linear-gradient(135deg, #e9f8ef, #f7fcf9);
 }
 
 .admin-body-center {
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   min-height: 100vh;
@@ -656,6 +693,8 @@ textarea:focus {
 
 .admin-login-brand {
   text-align: center;
+
+  color: var(--text);
 
   font-weight: 800;
 
@@ -673,7 +712,7 @@ textarea:focus {
 }
 
 .admin-header {
-  background: #08291c;
+  background: var(--green-deep);
 
   color: white;
 
@@ -717,7 +756,7 @@ textarea:focus {
 
   text-decoration: none;
 
-  font-size: 0.82rem;
+  font-size: .82rem;
 
   font-weight: 600;
 }
@@ -755,7 +794,7 @@ textarea:focus {
 }
 
 .admin-card h3 {
-  font-size: 0.9rem;
+  font-size: .9rem;
 }
 
 .admin-card .number {
@@ -777,7 +816,7 @@ textarea:focus {
 .admin-meta {
   color: var(--text-soft);
 
-  font-size: 0.78rem;
+  font-size: .78rem;
 }
 
 /* =========================
@@ -793,7 +832,7 @@ textarea:focus {
 
   border-radius: 999px;
 
-  font-size: 0.67rem;
+  font-size: .67rem;
 
   font-weight: 800;
 }
@@ -811,7 +850,7 @@ textarea:focus {
 }
 
 /* =========================
-   FLASH MESSAGES
+   FLASH
 ========================= */
 
 .flash {
@@ -821,7 +860,7 @@ textarea:focus {
 
   margin-bottom: 15px;
 
-  font-size: 0.83rem;
+  font-size: .83rem;
 }
 
 .flash-success {
@@ -837,7 +876,7 @@ textarea:focus {
 }
 
 /* =========================
-   ADMIN FIELD LIST
+   ADMIN FIELDS
 ========================= */
 
 .field-row {
@@ -863,7 +902,7 @@ textarea:focus {
 .field-row-sub {
   color: var(--text-soft);
 
-  font-size: 0.78rem;
+  font-size: .78rem;
 
   margin-top: 3px;
 }
@@ -897,7 +936,7 @@ textarea:focus {
 
   border-radius: 999px;
 
-  font-size: 0.64rem;
+  font-size: .64rem;
 
   font-weight: 800;
 }
@@ -925,7 +964,7 @@ textarea:focus {
   }
 
   .site-header {
-    min-height: 68px;
+    min-height: 70px;
   }
 
   .site-header nav {
@@ -933,7 +972,7 @@ textarea:focus {
   }
 
   .site-header nav a {
-    font-size: 0.78rem;
+    font-size: .76rem;
   }
 
   .hero {
@@ -947,7 +986,7 @@ textarea:focus {
   }
 
   .hero .lede {
-    font-size: 0.92rem;
+    font-size: .92rem;
   }
 
   .btn-row {
@@ -1015,7 +1054,7 @@ textarea:focus {
 }
 
 /* =========================
-   VERY SMALL PHONES
+   SMALL PHONES
 ========================= */
 
 @media (max-width: 380px) {
@@ -1029,6 +1068,6 @@ textarea:focus {
   }
 
   .site-name {
-    font-size: 0.9rem;
+    font-size: .9rem;
   }
   }
