@@ -1,30 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<%- include('partials/head', { pageTitle: settings.siteName }) %>
-<body>
-  <div class="wrap">
-    <%- include('partials/site-header') %>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <section class="hero">
-      <div class="hero-coin">
-        <%- include('partials/coin-mark', { size: 56 }) %>
-      </div>
-      <h1><%= settings.welcomeTitle %></h1>
-      <p class="lede"><%= settings.welcomeMessage %></p>
+  <title>
+    <%= typeof pageTitle !== 'undefined'
+      ? pageTitle
+      : 'Admin' %> — Bonus Coin Giveaway
+  </title>
 
-      <% if (activeGiveaway) { %>
-        <p class="lede"><strong><%= activeGiveaway.title %></strong> is live right now.</p>
-      <% } else { %>
-        <p class="lede">Check the Rewards page to see what's currently available.</p>
-      <% } %>
+  <meta name="robots" content="noindex, nofollow" />
 
-      <div class="btn-row">
-        <a class="btn btn-secondary" href="/rewards">Rewards</a>
-        <a class="btn btn-primary" href="/rewards#claim">Claim reward</a>
-      </div>
-    </section>
-
-    <%- include('partials/site-footer') %>
-  </div>
-</body>
-</html>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
