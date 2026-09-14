@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Current Bonus Coin Giveaway reward and claim form.">
+  <title>Rewards · Bonus Coin Giveaway</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Bonus Coin Giveaway home"><span class="brand-mark">B</span><span><strong>Bonus Coin</strong><small>Giveaway</small></span></a>
+  <nav aria-label="Main navigation"><a href="/">Home</a><a class="active" href="/rewards.html">Rewards</a></nav>
+</header>
+
+<main class="container page">
+  <div id="loading" class="loading-card">Loading current giveaway…</div>
+
+  <section id="rewardSection" class="hidden">
+    <div class="reward-hero card">
+      <div>
+        <span class="status" id="status">Active</span>
+        <h1 id="rewardTitle">Current Giveaway</h1>
+        <p id="rewardDescription"></p>
+        <div class="date-row"><span>Start <strong id="startDate">—</strong></span><span>End <strong id="endDate">—</strong></span></div>
+      </div>
+      <img id="rewardImage" class="reward-image hidden" alt="Giveaway reward">
+    </div>
+
+    <div class="reward-layout">
+      <section class="card form-card">
+        <div class="section-heading"><span class="eyebrow">Claim reward</span><h2>Enter your information</h2><p id="securityMessage">Your submitted information is secured and will not be publicly displayed.</p></div>
+        <form id="claimForm" novalidate><div id="dynamicFields"></div><label class="consent"><input id="agree" type="checkbox" required> <span>I agree to the terms and conditions.</span></label><button class="btn primary full" type="submit" id="submitBtn">Submit Claim</button><p class="form-error" id="formError" role="alert"></p></form>
+      </section>
+      <aside class="card safe-card"><div class="icon">✓</div><h3>Why your information is safe</h3><ul><li>Submitted information is not publicly displayed.</li><li>Only authorized administrators can review submissions.</li><li>Server-side validation protects the form.</li><li>Do not submit passwords or authentication secrets.</li></ul></aside>
+    </div>
+  </section>
+
+  <section id="emptyState" class="empty-state card hidden">
+    <div class="empty-icon">○</div><h1>No active giveaway</h1><p id="emptyText">There is no active giveaway at the moment. Please check back soon.</p><a class="btn primary" href="/">Back to Home</a>
+  </section>
+
+  <section id="successState" class="success-state card hidden">
+    <div class="success-icon">✓</div><h1>Submission Successful</h1><p>Your information has been submitted successfully. You are now entered for a chance to win.</p><a class="btn primary" href="/">Back to Home</a>
+  </section>
+</main>
+<footer class="site-footer"><div class="container footer-inner"><div><strong>Bonus Coin Giveaway</strong><small>Your chance. Your reward.</small></div><div>© <span id="year"></span></div></div></footer>
+<script src="/js/rewards.js"></script>
+</body>
+</html>
