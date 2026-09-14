@@ -1,0 +1,17 @@
+<header class="admin-header">
+  <div class="admin-header-inner">
+    <a href="/admin" class="admin-brand">
+      <%- include('../../partials/coin-mark', { size: 26 }) %>
+      <span>Admin</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin">Dashboard</a>
+      <a href="/admin/giveaways">Giveaways</a>
+      <a href="/admin/settings">Welcome message</a>
+      <a href="/" target="_blank" rel="noopener">View site&nbsp;↗</a>
+    </nav>
+    <form method="POST" action="/admin/logout" class="admin-logout-form">
+      <button type="submit" class="btn-link">Log out</button>
+    </form>
+  </div>
+</header>

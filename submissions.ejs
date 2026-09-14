@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head', { pageTitle: 'Submissions — ' + giveaway.title }) %>
+<body class="admin-body">
+  <%- include('partials/nav') %>
+  <div class="admin-wrap">
+    <%- include('partials/flash') %>
+
+    <a href="/admin/giveaways" class="admin-back-link">&larr; All giveaways</a>
+    <h1><%= giveaway.title %></h1>
+    <p class="admin-subtitle"><%= submissions.length %> submission<%= submissions.length === 1 ? '' : 's' %> received. Submitted data is only visible here, to signed-in administrators.</p>
+
+    <div class="panel">
+      <div class="admin-btn-row">
+        <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/pick-winner">
+          <button type="submit" class="btn btn-primary btn-small" <%= submissions.length === 0 ? 'disabled' : '' %>>Pick random winner</button>
+        </form>
+        <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/reset-winner">
+          <button type="submit" class="btn btn-secondary btn-small">Clear winner</button>
+        </form>
+      </div>
+    </div>
+
+    <% if (submissions.length === 0) { %>
+      <div class="panel empty-state">
+        <p>No submissions yet.</p>
+      </div>
+    <% } else { %>
+      <% if (fields.length === 0) { %>
+        <div class="panel"><p>This giveaway currently has no fields configured, but earlier submissions may still contain data below.</p></div>
+      <% } %>
+      <% submissions.forEach(function(sub) { %>
+        <div class="panel <%= sub.status === 'winner' ? 'panel-winner' : '' %>">
+          <div class="admin-card-top">
+            <div>
+              <% if (sub.status === 'winner') { %><span class="badge badge-winner">WINNER</span><% } %>
+              <span class="admin-meta"><%= new Date(sub.createdAt).toLocaleString() %></span>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <% fields.forEach(function(field) { %>
+              <div class="value-row">
+                <span class="label"><%= field.label %></span>
+                <span class="value"><%= sub.values[field.id] || '—' %></span>
+              </div>
+            <% }); %>
+          </div>
+          <% if (sub.status !== 'winner') { %>
+            <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/select" style="margin-top:14px;">
+              <button type="submit" class="btn btn-secondary btn-small">Select as winner</button>
+            </form>
+          <% } %>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

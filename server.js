@@ -1,89 +1,80 @@
 require('dotenv').config();
 
-const express = require('express');
 const path = require('path');
+const express = require('express');
+const session = require('express-session');
+const flash = require('connect-flash');
 const helmet = require('helmet');
-const cookieParser = require('cookie-parser');
-const crypto = require('crypto');
-const rateLimit = require('express-rate-limit');
 
-const publicRoutes = require('./src/routes/public');
-const adminApiRoutes = require('./src/routes/admin');
-const adminPageRoutes = require('./src/routes/adminPages');
+const publicRoutes = require('./routes/public');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-app.disable('x-powered-by');
+// Render (and most platforms) sit behind a proxy; needed for secure cookies to work.
 app.set('trust proxy', 1);
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'", "https:", "data:"],
-      objectSrc: ["'none'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
-      frameAncestors: ["'none'"]
-    }
-  },
-  crossOriginEmbedderPolicy: false
-}));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.json({ limit: '100kb' }));
-app.use(express.urlencoded({ extended: false, limit: '50kb' }));
-app.use(cookieParser(process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex')));
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // keep simple for the included inline widget scripts
+  })
+);
 
-const publicSubmissionLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 60,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  message: { error: 'Too many requests. Please try again later.' }
-});
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-const adminLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 120,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  message: { error: 'Too many admin requests. Please try again later.' }
-});
+const isProduction = process.env.NODE_ENV === 'production';
 
-app.use('/api/submissions', publicSubmissionLimiter);
-app.use('/api/admin', adminLimiter);
+if (!process.env.SESSION_SECRET) {
+  console.warn(
+    'WARNING: SESSION_SECRET is not set. Set it in your environment before deploying.'
+  );
+}
 
-app.get('/api/health', (req, res) => res.json({ ok: true, service: 'bonus-coin-giveaway' }));
+app.use(
+  session({
+    name: 'bcg.sid',
+    secret: process.env.SESSION_SECRET || 'dev-only-insecure-secret-change-me',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 8, // 8 hours
+    },
+  })
+);
 
-app.use('/api', publicRoutes);
-app.use('/api/admin', adminApiRoutes);
+app.use(flash());
 
-app.use('/admin', adminPageRoutes);
-
-app.use(express.static(path.join(__dirname, 'public'), {
-  index: 'index.html',
-  maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0
-}));
-
+// Make flash messages available in every view without repeating res.locals code.
 app.use((req, res, next) => {
-  if (req.method === 'GET' && req.path === '/') {
-    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  }
+  res.locals.successMessages = req.flash('success');
+  res.locals.errorMessages = req.flash('error');
   next();
 });
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  if (res.headersSent) return next(err);
-  res.status(500).json({ error: 'Something went wrong on the server.' });
+app.use('/', publicRoutes);
+app.use('/admin', adminRoutes);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).render('404', { path: req.path });
 });
 
-const PORT = Number(process.env.PORT || 3000);
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Bonus Coin Giveaway running on port ${PORT}`);
+// Generic error handler
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).send('Something went wrong. Please try again.');
 });
-  
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Bonus Coin Giveaway server running on port ${PORT}`);
+});

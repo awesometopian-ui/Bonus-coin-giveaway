@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head', { pageTitle: 'Dashboard' }) %>
+<body class="admin-body">
+  <%- include('partials/nav') %>
+  <div class="admin-wrap">
+    <%- include('partials/flash') %>
+
+    <h1>Dashboard</h1>
+    <p class="admin-subtitle">A quick overview of what's currently live on the public site.</p>
+
+    <div class="admin-grid">
+      <div class="panel">
+        <div class="eyebrow">Active giveaway</div>
+        <% if (activeGiveaway) { %>
+          <h2 class="panel-title"><%= activeGiveaway.title %></h2>
+          <p><%= activeGiveaway.description || 'No description set.' %></p>
+          <p><strong><%= submissionCount %></strong> submission<%= submissionCount === 1 ? '' : 's' %> so far.</p>
+          <div class="admin-btn-row">
+            <a class="btn btn-secondary btn-small" href="/admin/giveaways/<%= activeGiveaway.id %>/fields">Manage fields</a>
+            <a class="btn btn-primary btn-small" href="/admin/giveaways/<%= activeGiveaway.id %>/submissions">View submissions</a>
+          </div>
+        <% } else { %>
+          <h2 class="panel-title">Nothing is live</h2>
+          <p>The Rewards page currently shows "no reward is live right now." Activate a giveaway to start collecting entries.</p>
+          <a class="btn btn-primary btn-small" href="/admin/giveaways">Go to giveaways</a>
+        <% } %>
+      </div>
+
+      <div class="panel">
+        <div class="eyebrow">All giveaways</div>
+        <h2 class="panel-title"><%= giveaways.length %> total</h2>
+        <p>Create, edit, and switch which giveaway is shown to visitors.</p>
+        <a class="btn btn-secondary btn-small" href="/admin/giveaways">Manage giveaways</a>
+      </div>
+
+      <div class="panel">
+        <div class="eyebrow">Homepage</div>
+        <h2 class="panel-title">Welcome message</h2>
+        <p>Edit the site name and the welcome text shown on the home page.</p>
+        <a class="btn btn-secondary btn-small" href="/admin/settings">Edit welcome message</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

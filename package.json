@@ -1,25 +1,23 @@
 {
   "name": "bonus-coin-giveaway",
   "version": "1.0.0",
-  "private": true,
-  "description": "Production-ready generic giveaway platform using Node.js, Express and Supabase.",
+  "description": "A mobile-friendly giveaway website with a fully customizable claim form and a separate admin panel.",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
-  },
-  "engines": {
-    "node": ">=20"
+    "hash-password": "node scripts/hash-password.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.0",
-    "bcryptjs": "^3.0.2",
-    "cookie-parser": "^1.4.7",
-    "express": "^5.1.0",
-    "express-rate-limit": "^8.1.0",
-    "helmet": "^8.1.0",
-    "sanitize-html": "^2.17.0",
-    "zod": "^4.1.5",
-    "dotenv": "^17.2.1"
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0"
   }
 }

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head', { pageTitle: 'Admin login' }) %>
+<body class="admin-body admin-body-center">
+  <div class="admin-login-wrap">
+    <div class="admin-login-brand">
+      <%- include('../partials/coin-mark', { size: 40 }) %>
+      <span>Bonus Coin Giveaway</span>
+    </div>
+    <div class="panel">
+      <h1 class="panel-title">Admin sign in</h1>
+      <% if (error) { %>
+        <div class="flash flash-error"><%= error %></div>
+      <% } %>
+      <form method="POST" action="/admin/login">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username" required autofocus />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Log in</button>
+      </form>
+    </div>
+    <p class="admin-login-note">This area is private and only for the giveaway administrator.</p>
+  </div>
+</body>
+</html>

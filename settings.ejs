@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head', { pageTitle: 'Welcome message' }) %>
+<body class="admin-body">
+  <%- include('partials/nav') %>
+  <div class="admin-wrap admin-wrap-narrow">
+    <%- include('partials/flash') %>
+
+    <h1>Welcome message</h1>
+    <p class="admin-subtitle">This controls the site name and the text shown on the public home page. Change it any time — visitors will see the update immediately.</p>
+
+    <div class="panel">
+      <form method="POST" action="/admin/settings">
+        <div class="field">
+          <label for="siteName">Site name</label>
+          <input type="text" id="siteName" name="siteName" value="<%= settings.siteName %>" required />
+        </div>
+        <div class="field">
+          <label for="welcomeTitle">Welcome heading</label>
+          <input type="text" id="welcomeTitle" name="welcomeTitle" value="<%= settings.welcomeTitle %>" required />
+        </div>
+        <div class="field">
+          <label for="welcomeMessage">Welcome message</label>
+          <textarea id="welcomeMessage" name="welcomeMessage" rows="5" required><%= settings.welcomeMessage %></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
