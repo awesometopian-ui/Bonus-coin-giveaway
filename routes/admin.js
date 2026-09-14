@@ -1,5 +1,4 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const db = require('../db');
 const { requireAdmin, redirectIfAuthed } = require('../middleware/auth');
@@ -19,32 +18,34 @@ router.get('/login', redirectIfAuthed, (req, res) => {
   res.render('admin/login', { error: null });
 });
 
-router.post('/login', loginLimiter, redirectIfAuthed, async (req, res) => {
-  const { username, password } = req.body;
-  const adminUsername = process.env.ADMIN_USERNAME;
-  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+router.post('/login', loginLimiter, redirectIfAuthed, (req, res) => {
+  const { pin } = req.body;
+  const adminPin = process.env.ADMIN_PIN;
 
-  if (!adminUsername || !adminPasswordHash) {
+  if (!adminPin) {
     return res.render('admin/login', {
-      error:
-        'Admin credentials are not configured on the server. Set ADMIN_USERNAME and ADMIN_PASSWORD_HASH.',
+      error: 'Admin PIN is not configured on the server. Set ADMIN_PIN in Render.',
     });
   }
 
-  const usernameMatches = username === adminUsername;
-  const passwordMatches =
-    usernameMatches && (await bcrypt.compare(password || '', adminPasswordHash));
+  const pinMatches = String(pin || '') === String(adminPin);
 
-  if (!usernameMatches || !passwordMatches) {
-    return res.status(401).render('admin/login', { error: 'Incorrect username or password.' });
+  if (!pinMatches) {
+    return res.status(401).render('admin/login', {
+      error: 'Incorrect PIN.',
+    });
   }
 
   req.session.regenerate((err) => {
     if (err) {
-      return res.status(500).render('admin/login', { error: 'Something went wrong. Try again.' });
+      return res.status(500).render('admin/login', {
+        error: 'Something went wrong. Try again.',
+      });
     }
+
     req.session.isAdmin = true;
-    req.session.adminUsername = username;
+    req.session.adminUsername = 'Admin';
+
     res.redirect('/admin');
   });
 });
