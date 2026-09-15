@@ -139,7 +139,6 @@ function createGiveaway({
   title,
   description,
   winnerCount,
-  pendingMessage,
   successMessage,
   winnerMessage,
   declinedMessage,
@@ -165,11 +164,6 @@ function createGiveaway({
       messageData.winner ||
       'Congratulations! Your submission was successful.';
 
-    const finalPendingMessage =
-      pendingMessage ||
-      messageData.pending ||
-      'Your submission has been received and is being reviewed.';
-
     const finalDeclinedMessage =
       declinedMessage ||
       messageData.declined ||
@@ -186,11 +180,10 @@ function createGiveaway({
 
       createdAt: Date.now(),
 
-      // Number of successful submissions allowed.
+      // Maximum number of successful submissions.
       winnerCount: finalWinnerCount,
 
       messages: {
-        pending: finalPendingMessage,
         winner: finalSuccessMessage,
         declined: finalDeclinedMessage,
       },
@@ -220,7 +213,6 @@ function updateGiveaway(giveawayId, patch) {
       giveaway.description = patch.description;
     }
 
-    // Winner count
     if (
       patch.winnerCount !== undefined &&
       Number.isFinite(Number(patch.winnerCount))
@@ -231,53 +223,37 @@ function updateGiveaway(giveawayId, patch) {
       );
     }
 
-    // Make sure messages exist.
     if (!giveaway.messages) {
-      giveaway.messages = {
-        pending:
-          'Your submission has been received and is being reviewed.',
-
-        winner:
-          'Congratulations! Your submission was successful.',
-
-        declined:
-          'Your submission was not selected. Thank you for participating.',
-      };
-    }
-
-    // Individual message properties
-    if (typeof patch.pendingMessage === 'string') {
-      giveaway.messages.pending = patch.pendingMessage;
+      giveaway.messages = {};
     }
 
     if (typeof patch.successMessage === 'string') {
-      giveaway.messages.winner = patch.successMessage;
+      giveaway.messages.winner =
+        patch.successMessage;
     }
 
     if (typeof patch.winnerMessage === 'string') {
-      giveaway.messages.winner = patch.winnerMessage;
+      giveaway.messages.winner =
+        patch.winnerMessage;
     }
 
     if (typeof patch.declinedMessage === 'string') {
-      giveaway.messages.declined = patch.declinedMessage;
+      giveaway.messages.declined =
+        patch.declinedMessage;
     }
 
-    // Messages object
     if (
       patch.messages &&
       typeof patch.messages === 'object'
     ) {
-      if (typeof patch.messages.pending === 'string') {
-        giveaway.messages.pending =
-          patch.messages.pending;
-      }
-
       if (typeof patch.messages.winner === 'string') {
         giveaway.messages.winner =
           patch.messages.winner;
       }
 
-      if (typeof patch.messages.declined === 'string') {
+      if (
+        typeof patch.messages.declined === 'string'
+      ) {
         giveaway.messages.declined =
           patch.messages.declined;
       }
@@ -477,7 +453,7 @@ function addSubmission(
         ? Math.floor(configuredWinnerCount)
         : 1;
 
-    // Count successful submissions already accepted.
+    // Count successful submissions already created.
     const successfulCount =
       data.submissions.filter(
         (s) =>
@@ -485,7 +461,7 @@ function addSubmission(
           s.status === 'winner'
       ).length;
 
-    // Automatically decide the result.
+    // Automatically determine the result.
     const status =
       successfulCount < winnerLimit
         ? 'winner'
@@ -530,60 +506,6 @@ function getSubmission(submissionId) {
         (s) => s.id === submissionId
       ) || null
   );
-}
-
-// Kept for compatibility with older code.
-// New submissions are automatically assigned a status.
-function setSubmissionStatus(
-  submissionId,
-  status
-) {
-  return transaction((data) => {
-    const submission =
-      data.submissions.find(
-        (s) => s.id === submissionId
-      );
-
-    if (!submission) return null;
-
-    const allowedStatuses = [
-      'pending',
-      'winner',
-      'declined',
-    ];
-
-    if (!allowedStatuses.includes(status)) {
-      return submission;
-    }
-
-    if (status === 'winner') {
-      const giveaway =
-        data.giveaways.find(
-          (g) => g.id === submission.giveawayId
-        );
-
-      if (giveaway) {
-        const winnerLimit =
-          Number(giveaway.winnerCount) || 1;
-
-        const currentWinners =
-          data.submissions.filter(
-            (s) =>
-              s.giveawayId === submission.giveawayId &&
-              s.status === 'winner' &&
-              s.id !== submissionId
-          ).length;
-
-        if (currentWinners >= winnerLimit) {
-          return null;
-        }
-      }
-    }
-
-    submission.status = status;
-
-    return submission;
-  });
 }
 
 // ---------- Winner helpers ----------
@@ -650,16 +572,9 @@ function getSubmissionMessage(
     );
   }
 
-  if (status === 'declined') {
-    return (
-      messages.declined ||
-      'Your submission was not selected. Thank you for participating.'
-    );
-  }
-
   return (
-    messages.pending ||
-    'Your submission has been received and is being reviewed.'
+    messages.declined ||
+    'Your submission was not selected. Thank you for participating.'
   );
 }
 
@@ -675,21 +590,4 @@ module.exports = {
   updateGiveaway,
   setActiveGiveaway,
   deactivateAllGiveaways,
-  deleteGiveaway,
-
-  addField,
-  updateField,
-  deleteField,
-  reorderFields,
-
-  addSubmission,
-  getSubmissionsForGiveaway,
-  getSubmission,
-  setSubmissionStatus,
-
-  getWinnerCount,
-  getCurrentWinnerCount,
-  getRemainingWinnerSlots,
-
-  getSubmissionMessage,
-};
+ 
