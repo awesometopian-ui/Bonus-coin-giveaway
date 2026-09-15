@@ -1,59 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/head', { pageTitle: 'Submissions — ' + giveaway.title }) %>
+
 <body class="admin-body">
+
   <%- include('partials/nav') %>
+
   <div class="admin-wrap">
+
     <%- include('partials/flash') %>
 
     <a href="/admin/giveaways" class="admin-back-link">&larr; All giveaways</a>
-    <h1><%= giveaway.title %></h1>
-    <p class="admin-subtitle"><%= submissions.length %> submission<%= submissions.length === 1 ? '' : 's' %> received. Submitted data is only visible here, to signed-in administrators.</p>
 
-    <div class="panel">
-      <div class="admin-btn-row">
-        <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/pick-winner">
-          <button type="submit" class="btn btn-primary btn-small" <%= submissions.length === 0 ? 'disabled' : '' %>>Pick random winner</button>
-        </form>
-        <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/reset-winner">
-          <button type="submit" class="btn btn-secondary btn-small">Clear winner</button>
-        </form>
-      </div>
-    </div>
+    <h1><%= giveaway.title %></h1>
+
+    <p class="admin-subtitle">
+      <%= submissions.length %> submission<%= submissions.length === 1 ? '' : 's' %> received.
+      Submitted data is only visible here, to signed-in administrators.
+    </p>
+
 
     <% if (submissions.length === 0) { %>
+
       <div class="panel empty-state">
         <p>No submissions yet.</p>
       </div>
+
     <% } else { %>
+
       <% if (fields.length === 0) { %>
-        <div class="panel"><p>This giveaway currently has no fields configured, but earlier submissions may still contain data below.</p></div>
-      <% } %>
-      <% submissions.forEach(function(sub) { %>
-        <div class="panel <%= sub.status === 'winner' ? 'panel-winner' : '' %>">
-          <div class="admin-card-top">
-            <div>
-              <% if (sub.status === 'winner') { %><span class="badge badge-winner">WINNER</span><% } %>
-              <span class="admin-meta"><%= new Date(sub.createdAt).toLocaleString() %></span>
-            </div>
-          </div>
-          <div style="margin-top:10px;">
-            <% fields.forEach(function(field) { %>
-              <div class="value-row">
-                <span class="label"><%= field.label %></span>
-                <span class="value"><%= sub.values[field.id] || '—' %></span>
-              </div>
-            <% }); %>
-          </div>
-          <% if (sub.status !== 'winner') { %>
-            <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/select" style="margin-top:14px;">
-              <button type="submit" class="btn btn-secondary btn-small">Select as winner</button>
-            </form>
-          <% } %>
+        <div class="panel">
+          <p>
+            This giveaway currently has no fields configured, but earlier
+            submissions may still contain data below.
+          </p>
         </div>
+      <% } %>
+
+
+      <% submissions.forEach(function(sub) { %>
+
+        <div class="panel <%= sub.status === 'winner' ? 'panel-winner' : '' %>">
+
+          <!-- TOP -->
+          <div class="admin-card-top">
+
+            <div>
+
+              <% if (sub.status === 'winner') { %>
+
+                <span class="badge badge-winner">🟢 WINNER</span>
+
+              <% } else if (sub.status === 'declined') { %>
+
+                <span class="badge" style="background:#dc2626;color:white;">
+                  🔴 DECLINED
+                </span>
+
+              <% } else { %>
+
+                <span class="badge" style="background:#eab308;color:#111;">
+                  🟡 PENDING
+                </span>
+
+              <% } %>
+
+              <span class="admin-meta">
+                <%= new Date(sub.createdAt).toLocaleString() %>
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- SUBMITTED VALUES -->
+          <div style="margin-top:16px;">
+
+            <% fields.forEach(function(field) { %>
+
+              <div class="value-row">
+
+                <span class="label">
+                  <%= field.label %>
+                </span>
+
+                <span class="value">
+                  <%= sub.values[field.id] || '—' %>
+                </span>
+
+                <% if (sub.values[field.id]) { %>
+
+                  <button
+                    type="button"
+                    class="copy-btn"
+                    data-copy-value="<%= sub.values[field.id] %>"
+                    onclick="navigator.clipboard.writeText(this.dataset.copyValue); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 1200);"
+                  >
+                    Copy
+                  </button>
+
+                <% } %>
+
+              </div>
+
+            <% }); %>
+
+          </div>
+
+
+          <!-- WINNER AMOUNT -->
+          <% if (sub.status === 'winner' && sub.rewardAmount !== undefined && sub.rewardAmount !== null) { %>
+
+            <div
+              style="
+                margin-top:14px;
+                padding:12px;
+                border-radius:10px;
+                background:rgba(57,255,136,.08);
+              "
+            >
+              <strong>🏆 Winner Amount:</strong>
+              <%= sub.rewardAmount %>
+            </div>
+
+          <% } %>
+
+
+          <!-- ADMIN STATUS CONTROLS -->
+          <div style="margin-top:16px;">
+
+            <div style="margin-bottom:8px;font-weight:600;">
+              Submission Status
+            </div>
+
+            <div
+              class="admin-btn-row"
+              style="display:flex;gap:8px;flex-wrap:wrap;"
+            >
+
+              <!-- PENDING -->
+              <form
+                method="POST"
+                action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/status"
+              >
+                <input type="hidden" name="status" value="pending">
+
+                <button
+                  type="submit"
+                  class="btn btn-secondary btn-small"
+                >
+                  🟡 Pending
+                </button>
+              </form>
+
+
+              <!-- WINNER -->
+              <form
+                method="POST"
+                action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/status"
+              >
+
+                <input type="hidden" name="status" value="winner">
+
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-small"
+                >
+                  🟢 Winner
+                </button>
+
+              </form>
+
+
+              <!-- DECLINED -->
+              <form
+                method="POST"
+                action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/status"
+              >
+
+                <input type="hidden" name="status" value="declined">
+
+                <button
+                  type="submit"
+                  class="btn btn-small"
+                  style="background:#dc2626;color:white;border:none;"
+                >
+                  🔴 Declined
+                </button>
+
+              </form>
+
+            </div>
+
+          </div>
+
+
+          <!-- WINNER AMOUNT + MESSAGE -->
+          <form
+            method="POST"
+            action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/update"
+            style="margin-top:16px;"
+          >
+
+            <div class="field">
+
+              <label for="amount-<%= sub.id %>">
+                Winner Amount
+              </label>
+
+              <input
+                type="number"
+                id="amount-<%= sub.id %>"
+                name="rewardAmount"
+                min="0"
+                max="100"
+                step="0.01"
+                value="<%= sub.rewardAmount !== undefined && sub.rewardAmount !== null ? sub.rewardAmount : '' %>"
+                placeholder="0 - 100"
+              />
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="message-<%= sub.id %>">
+                Admin Message
+              </label>
+
+              <textarea
+                id="message-<%= sub.id %>"
+                name="adminMessage"
+                rows="3"
+                placeholder="Write a message for this user..."
+              ><%= sub.adminMessage || '' %></textarea>
+
+            </div>
+
+
+            <button
+              type="submit"
+              class="btn btn-secondary btn-small"
+            >
+              Save Changes
+            </button>
+
+          </form>
+
+        </div>
+
       <% }); %>
+
     <% } %>
+
   </div>
+
   <script src="/js/admin.js"></script>
+
 </body>
 </html>
