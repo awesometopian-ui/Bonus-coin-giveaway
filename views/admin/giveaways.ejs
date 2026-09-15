@@ -82,29 +82,13 @@
 
         <div class="field">
 
-          <label for="pendingMessage">
-            Pending Message
-          </label>
-
-          <textarea
-            id="pendingMessage"
-            name="pendingMessage"
-            rows="3"
-            placeholder="Your submission has been received and is being reviewed."
-          >Your submission has been received and is being reviewed.</textarea>
-
-        </div>
-
-
-        <div class="field">
-
-          <label for="successMessage">
+          <label for="winnerMessage">
             Successful / Winner Message
           </label>
 
           <textarea
-            id="successMessage"
-            name="successMessage"
+            id="winnerMessage"
+            name="winnerMessage"
             rows="3"
             placeholder="Congratulations! Your submission was successful."
           >Congratulations! Your submission was successful.</textarea>
@@ -195,6 +179,7 @@
             <strong>
               <%= g.winnerCount || 1 %>
             </strong>
+
             winner<%= (g.winnerCount || 1) === 1 ? '' : 's' %>
 
           </p>
@@ -241,7 +226,7 @@
                   id="description-<%= g.id %>"
                   name="description"
                   rows="3"
-                ><%= g.description %></textarea>
+                ><%= g.description || '' %></textarea>
 
               </div>
 
@@ -271,28 +256,13 @@
 
               <div class="field">
 
-                <label for="pendingMessage-<%= g.id %>">
-                  Pending Message
-                </label>
-
-                <textarea
-                  id="pendingMessage-<%= g.id %>"
-                  name="pendingMessage"
-                  rows="3"
-                ><%= g.messages && g.messages.pending ? g.messages.pending : 'Your submission has been received and is being reviewed.' %></textarea>
-
-              </div>
-
-
-              <div class="field">
-
-                <label for="successMessage-<%= g.id %>">
+                <label for="winnerMessage-<%= g.id %>">
                   Successful / Winner Message
                 </label>
 
                 <textarea
-                  id="successMessage-<%= g.id %>"
-                  name="successMessage"
+                  id="winnerMessage-<%= g.id %>"
+                  name="winnerMessage"
                   rows="3"
                 ><%= g.messages && g.messages.winner ? g.messages.winner : 'Congratulations! Your submission was successful.' %></textarea>
 
