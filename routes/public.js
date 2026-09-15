@@ -8,29 +8,46 @@ const claimLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: true,
   message: 'Too many submissions from this device. Please try again later.',
 });
 
 function enabledFields(giveaway) {
   if (!giveaway) return [];
-  return giveaway.fields.filter((f) => f.enabled).sort((a, b) => a.order - b.order);
+
+  return giveaway.fields
+    .filter((f) => f.enabled)
+    .sort((a, b) => a.order - b.order);
 }
 
+// ---------- Home ----------
 router.get('/', (req, res) => {
   const settings = db.getSettings();
   const activeGiveaway = db.getActiveGiveaway();
-  res.render('home', { settings, activeGiveaway });
+
+  res.render('home', {
+    settings,
+    activeGiveaway,
+  });
 });
 
+// ---------- Rewards ----------
 router.get('/rewards', (req, res) => {
   const settings = db.getSettings();
   const activeGiveaway = db.getActiveGiveaway();
   const fields = enabledFields(activeGiveaway);
-  res.render('rewards', { settings, activeGiveaway, fields, formValues: {}, errors: null });
+
+  res.render('rewards', {
+    settings,
+    activeGiveaway,
+    fields,
+    formValues: {},
+    errors: null,
+  });
 });
 
-router.post('/rewards/claim', claimLimiter, (req, res) => {
+// ---------- Submit Entry ----------
+router.post('/rewards/claim', claimLimiter, async (req, res) => {
   const settings = db.getSettings();
   const activeGiveaway = db.getActiveGiveaway();
 
@@ -44,12 +61,15 @@ router.post('/rewards/claim', claimLimiter, (req, res) => {
 
   fields.forEach((field) => {
     const raw = (req.body[field.id] || '').toString().trim();
+
     values[field.id] = raw;
+
     if (field.required && !raw) {
       errors[field.id] = `${field.label} is required.`;
     }
   });
 
+  // Validation errors
   if (Object.keys(errors).length > 0) {
     return res.status(400).render('rewards', {
       settings,
@@ -60,19 +80,31 @@ router.post('/rewards/claim', claimLimiter, (req, res) => {
     });
   }
 
-  const submission = db.addSubmission(activeGiveaway.id, values);
+  // Save submission
+  const submission = await db.addSubmission(
+    activeGiveaway.id,
+    values
+  );
 
-  Promise.resolve(submission).then((saved) => {
-    const submittedFields = fields.map((f) => ({
-      label: f.label,
-      value: values[f.id],
-      copyable: f.copyable,
-    }));
-    res.render('confirmation', {
-      settings,
-      giveawayTitle: activeGiveaway.title,
-      submittedFields,
-    });
+  // Get the final status assigned by the database
+  const status = submission.status || 'pending';
+
+  // Get the custom message configured by admin
+  const message =
+    db.getSubmissionMessage(activeGiveaway.id, status) ||
+    'Your submission has been successfully received.';
+
+  const submittedFields = fields.map((field) => ({
+    label: field.label,
+    value: values[field.id],
+  }));
+
+  res.render('confirmation', {
+    settings,
+    giveawayTitle: activeGiveaway.title,
+    submittedFields,
+    status,
+    message,
   });
 });
 
