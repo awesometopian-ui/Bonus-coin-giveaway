@@ -101,11 +101,24 @@ router.get('/giveaways', (req, res) => {
 });
 
 router.post('/giveaways', async (req, res) => {
-  const { title, description } = req.body;
+  const {
+    title,
+    description,
+    winnerCount,
+    pendingMessage,
+    winnerMessage,
+    declinedMessage,
+  } = req.body;
 
   const giveaway = await db.createGiveaway({
     title,
     description,
+    winnerCount: Number(winnerCount) || 1,
+    messages: {
+      pending: pendingMessage,
+      winner: winnerMessage,
+      declined: declinedMessage,
+    },
   });
 
   req.flash(
@@ -117,14 +130,27 @@ router.post('/giveaways', async (req, res) => {
 });
 
 router.post('/giveaways/:id/update', async (req, res) => {
-  const { title, description } = req.body;
+  const {
+    title,
+    description,
+    winnerCount,
+    pendingMessage,
+    winnerMessage,
+    declinedMessage,
+  } = req.body;
 
   await db.updateGiveaway(req.params.id, {
     title,
     description,
+    winnerCount: Number(winnerCount) || 1,
+    messages: {
+      pending: pendingMessage,
+      winner: winnerMessage,
+      declined: declinedMessage,
+    },
   });
 
-  req.flash('success', 'Giveaway details updated.');
+  req.flash('success', 'Giveaway settings updated.');
   res.redirect('/admin/giveaways');
 });
 
@@ -302,10 +328,21 @@ router.post(
       );
     }
 
-    await db.setSubmissionStatus(
+    const updated = await db.setSubmissionStatus(
       req.params.subId,
       status
     );
+
+    if (!updated && status === 'winner') {
+      req.flash(
+        'error',
+        'The winner limit has already been reached.'
+      );
+
+      return res.redirect(
+        `/admin/giveaways/${req.params.id}/submissions`
+      );
+    }
 
     const messages = {
       pending: 'Submission marked as pending.',
