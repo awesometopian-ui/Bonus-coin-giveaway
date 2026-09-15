@@ -180,7 +180,6 @@ function createGiveaway({
 
       createdAt: Date.now(),
 
-      // Maximum number of successful submissions.
       winnerCount: finalWinnerCount,
 
       messages: {
@@ -453,7 +452,6 @@ function addSubmission(
         ? Math.floor(configuredWinnerCount)
         : 1;
 
-    // Count successful submissions already created.
     const successfulCount =
       data.submissions.filter(
         (s) =>
@@ -461,7 +459,6 @@ function addSubmission(
           s.status === 'winner'
       ).length;
 
-    // Automatically determine the result.
     const status =
       successfulCount < winnerLimit
         ? 'winner'
@@ -578,6 +575,8 @@ function getSubmissionMessage(
   );
 }
 
+// ---------- Exports ----------
+
 module.exports = {
   getSettings,
   updateSettings,
@@ -590,4 +589,20 @@ module.exports = {
   updateGiveaway,
   setActiveGiveaway,
   deactivateAllGiveaways,
- 
+  deleteGiveaway,
+
+  addField,
+  updateField,
+  deleteField,
+  reorderFields,
+
+  addSubmission,
+  getSubmissionsForGiveaway,
+  getSubmission,
+
+  getWinnerCount,
+  getCurrentWinnerCount,
+  getRemainingWinnerSlots,
+
+  getSubmissionMessage,
+};
