@@ -1,80 +1,414 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/head', { pageTitle: 'Giveaways' }) %>
+
 <body class="admin-body">
+
   <%- include('partials/nav') %>
+
   <div class="admin-wrap">
+
     <%- include('partials/flash') %>
 
     <h1>Giveaways</h1>
-    <p class="admin-subtitle">Only one giveaway can be active on the public Rewards page at a time. Create a new one for each promotion, set up its fields, then activate it.</p>
 
+    <p class="admin-subtitle">
+      Create a giveaway, choose how many winners you want, customize the
+      messages users receive, then activate it.
+    </p>
+
+
+    <!-- CREATE GIVEAWAY -->
     <div class="panel">
+
       <div class="eyebrow">New giveaway</div>
+
       <form method="POST" action="/admin/giveaways">
+
         <div class="field">
           <label for="title">Title</label>
-          <input type="text" id="title" name="title" placeholder="e.g. October Bonus Coin Drop" required />
+
+          <input
+            type="text"
+            id="title"
+            name="title"
+            placeholder="e.g. October Bonus Coin Drop"
+            required
+          />
         </div>
+
+
         <div class="field">
-          <label for="description">Description <span class="optional-mark">(shown on the Rewards page)</span></label>
-          <textarea id="description" name="description" rows="3" placeholder="Tell followers what this reward is about"></textarea>
+
+          <label for="description">
+            Description
+            <span class="optional-mark">
+              (shown on the Rewards page)
+            </span>
+          </label>
+
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            placeholder="Tell users what this reward is about"
+          ></textarea>
+
         </div>
-        <button type="submit" class="btn btn-primary">Create giveaway</button>
+
+
+        <div class="field">
+
+          <label for="winnerCount">
+            Number of Winners
+          </label>
+
+          <input
+            type="number"
+            id="winnerCount"
+            name="winnerCount"
+            min="1"
+            step="1"
+            value="1"
+            required
+          />
+
+          <small>
+            Users will not see this number.
+          </small>
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="pendingMessage">
+            Pending Message
+          </label>
+
+          <textarea
+            id="pendingMessage"
+            name="pendingMessage"
+            rows="3"
+            placeholder="Your submission has been received and is being reviewed."
+          >Your submission has been received and is being reviewed.</textarea>
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="successMessage">
+            Successful / Winner Message
+          </label>
+
+          <textarea
+            id="successMessage"
+            name="successMessage"
+            rows="3"
+            placeholder="Congratulations! Your submission was successful."
+          >Congratulations! Your submission was successful.</textarea>
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="declinedMessage">
+            Declined Message
+          </label>
+
+          <textarea
+            id="declinedMessage"
+            name="declinedMessage"
+            rows="3"
+            placeholder="Your submission was not selected. Thank you for participating."
+          >Your submission was not selected. Thank you for participating.</textarea>
+
+        </div>
+
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+        >
+          Create giveaway
+        </button>
+
       </form>
+
     </div>
 
+
+    <!-- EXISTING GIVEAWAYS -->
     <% if (giveaways.length === 0) { %>
+
       <div class="panel empty-state">
         <p>No giveaways yet. Create your first one above.</p>
       </div>
-    <% } else { %>
-      <% giveaways.forEach(function(g) { %>
-        <div class="panel">
-          <div class="admin-card-top">
-            <div>
-              <% if (g.active) { %><span class="badge badge-live">LIVE</span><% } %>
-              <h2 class="panel-title" style="display:inline-block; margin-left: <%= g.active ? '8px' : '0' %>;"><%= g.title %></h2>
-            </div>
-          </div>
-          <% if (g.description) { %><p><%= g.description %></p><% } %>
-          <p class="admin-meta"><%= g.fields.length %> field<%= g.fields.length === 1 ? '' : 's' %> configured</p>
 
+    <% } else { %>
+
+      <% giveaways.forEach(function(g) { %>
+
+        <div class="panel">
+
+          <div class="admin-card-top">
+
+            <div>
+
+              <% if (g.active) { %>
+                <span class="badge badge-live">LIVE</span>
+              <% } %>
+
+              <h2
+                class="panel-title"
+                style="
+                  display:inline-block;
+                  margin-left:<%= g.active ? '8px' : '0' %>;
+                "
+              >
+                <%= g.title %>
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <% if (g.description) { %>
+
+            <p>
+              <%= g.description %>
+            </p>
+
+          <% } %>
+
+
+          <p class="admin-meta">
+
+            <%= g.fields.length %>
+            field<%= g.fields.length === 1 ? '' : 's' %> configured
+
+            &nbsp;•&nbsp;
+
+            <strong>
+              <%= g.winnerCount || 1 %>
+            </strong>
+            winner<%= (g.winnerCount || 1) === 1 ? '' : 's' %>
+
+          </p>
+
+
+          <!-- EDIT GIVEAWAY -->
           <details class="admin-edit-details">
-            <summary>Edit title / description</summary>
-            <form method="POST" action="/admin/giveaways/<%= g.id %>/update" style="margin-top:14px;">
+
+            <summary>
+              Edit giveaway settings
+            </summary>
+
+
+            <form
+              method="POST"
+              action="/admin/giveaways/<%= g.id %>/update"
+              style="margin-top:14px;"
+            >
+
               <div class="field">
-                <label for="title-<%= g.id %>">Title</label>
-                <input type="text" id="title-<%= g.id %>" name="title" value="<%= g.title %>" required />
+
+                <label for="title-<%= g.id %>">
+                  Title
+                </label>
+
+                <input
+                  type="text"
+                  id="title-<%= g.id %>"
+                  name="title"
+                  value="<%= g.title %>"
+                  required
+                />
+
               </div>
+
+
               <div class="field">
-                <label for="description-<%= g.id %>">Description</label>
-                <textarea id="description-<%= g.id %>" name="description" rows="3"><%= g.description %></textarea>
+
+                <label for="description-<%= g.id %>">
+                  Description
+                </label>
+
+                <textarea
+                  id="description-<%= g.id %>"
+                  name="description"
+                  rows="3"
+                ><%= g.description %></textarea>
+
               </div>
-              <button type="submit" class="btn btn-secondary btn-small">Save</button>
+
+
+              <div class="field">
+
+                <label for="winnerCount-<%= g.id %>">
+                  Number of Winners
+                </label>
+
+                <input
+                  type="number"
+                  id="winnerCount-<%= g.id %>"
+                  name="winnerCount"
+                  min="1"
+                  step="1"
+                  value="<%= g.winnerCount || 1 %>"
+                  required
+                />
+
+                <small>
+                  Users will not see this number.
+                </small>
+
+              </div>
+
+
+              <div class="field">
+
+                <label for="pendingMessage-<%= g.id %>">
+                  Pending Message
+                </label>
+
+                <textarea
+                  id="pendingMessage-<%= g.id %>"
+                  name="pendingMessage"
+                  rows="3"
+                ><%= g.messages && g.messages.pending ? g.messages.pending : 'Your submission has been received and is being reviewed.' %></textarea>
+
+              </div>
+
+
+              <div class="field">
+
+                <label for="successMessage-<%= g.id %>">
+                  Successful / Winner Message
+                </label>
+
+                <textarea
+                  id="successMessage-<%= g.id %>"
+                  name="successMessage"
+                  rows="3"
+                ><%= g.messages && g.messages.winner ? g.messages.winner : 'Congratulations! Your submission was successful.' %></textarea>
+
+              </div>
+
+
+              <div class="field">
+
+                <label for="declinedMessage-<%= g.id %>">
+                  Declined Message
+                </label>
+
+                <textarea
+                  id="declinedMessage-<%= g.id %>"
+                  name="declinedMessage"
+                  rows="3"
+                ><%= g.messages && g.messages.declined ? g.messages.declined : 'Your submission was not selected. Thank you for participating.' %></textarea>
+
+              </div>
+
+
+              <button
+                type="submit"
+                class="btn btn-secondary btn-small"
+              >
+                Save Changes
+              </button>
+
             </form>
+
           </details>
 
-          <div class="admin-btn-row" style="margin-top:16px;">
-            <a class="btn btn-secondary btn-small" href="/admin/giveaways/<%= g.id %>/fields">Fields</a>
-            <a class="btn btn-secondary btn-small" href="/admin/giveaways/<%= g.id %>/submissions">Submissions</a>
+
+          <!-- ACTIONS -->
+          <div
+            class="admin-btn-row"
+            style="margin-top:16px;"
+          >
+
+            <a
+              class="btn btn-secondary btn-small"
+              href="/admin/giveaways/<%= g.id %>/fields"
+            >
+              Fields
+            </a>
+
+
+            <a
+              class="btn btn-secondary btn-small"
+              href="/admin/giveaways/<%= g.id %>/submissions"
+            >
+              Submissions
+            </a>
+
+
             <% if (g.active) { %>
-              <form method="POST" action="/admin/giveaways/<%= g.id %>/deactivate">
-                <button type="submit" class="btn btn-secondary btn-small">Deactivate</button>
+
+              <form
+                method="POST"
+                action="/admin/giveaways/<%= g.id %>/deactivate"
+              >
+
+                <button
+                  type="submit"
+                  class="btn btn-secondary btn-small"
+                >
+                  Deactivate
+                </button>
+
               </form>
+
             <% } else { %>
-              <form method="POST" action="/admin/giveaways/<%= g.id %>/activate">
-                <button type="submit" class="btn btn-primary btn-small">Activate</button>
+
+              <form
+                method="POST"
+                action="/admin/giveaways/<%= g.id %>/activate"
+              >
+
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-small"
+                >
+                  Activate
+                </button>
+
               </form>
+
             <% } %>
-            <form method="POST" action="/admin/giveaways/<%= g.id %>/delete" data-confirm="Delete this giveaway and all of its submissions? This cannot be undone.">
-              <button type="submit" class="btn btn-danger btn-small">Delete</button>
+
+
+            <form
+              method="POST"
+              action="/admin/giveaways/<%= g.id %>/delete"
+              data-confirm="Delete this giveaway and all of its submissions? This cannot be undone."
+            >
+
+              <button
+                type="submit"
+                class="btn btn-danger btn-small"
+              >
+                Delete
+              </button>
+
             </form>
+
           </div>
+
         </div>
+
       <% }); %>
+
     <% } %>
+
   </div>
+
   <script src="/js/admin.js"></script>
+
 </body>
 </html>
