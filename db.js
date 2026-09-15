@@ -4,6 +4,7 @@
  * Everything the admin manages is stored in data/db.json.
  * Writes are serialized through a tiny in-process queue.
  */
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -16,7 +17,7 @@ function defaultData() {
       siteName: 'Bonus Coin Giveaway',
       welcomeTitle: 'Welcome!',
       welcomeMessage:
-        "Thanks for stopping by. Check the current reward below and submit your entry.",
+        'Thanks for stopping by. Check the current reward below and submit your entry.',
     },
 
     giveaways: [],
@@ -72,6 +73,7 @@ function writeRaw(data) {
 }
 
 // ---------- Write queue ----------
+
 let queue = Promise.resolve();
 
 function transaction(mutator) {
@@ -92,6 +94,7 @@ function id() {
 }
 
 // ---------- Settings ----------
+
 function getSettings() {
   return readRaw().settings;
 }
@@ -108,6 +111,7 @@ function updateSettings(patch) {
 }
 
 // ---------- Giveaways ----------
+
 function getGiveaways() {
   return readRaw()
     .giveaways
@@ -137,9 +141,40 @@ function createGiveaway({
   winnerCount,
   pendingMessage,
   successMessage,
+  winnerMessage,
   declinedMessage,
+  messages,
 }) {
   return transaction((data) => {
+    const parsedWinnerCount = Number(winnerCount);
+
+    const finalWinnerCount =
+      Number.isFinite(parsedWinnerCount) &&
+      parsedWinnerCount >= 1
+        ? Math.floor(parsedWinnerCount)
+        : 1;
+
+    const messageData =
+      messages && typeof messages === 'object'
+        ? messages
+        : {};
+
+    const finalSuccessMessage =
+      successMessage ||
+      winnerMessage ||
+      messageData.winner ||
+      'Congratulations! Your submission was successful.';
+
+    const finalPendingMessage =
+      pendingMessage ||
+      messageData.pending ||
+      'Your submission has been received and is being reviewed.';
+
+    const finalDeclinedMessage =
+      declinedMessage ||
+      messageData.declined ||
+      'Your submission was not selected. Thank you for participating.';
+
     const giveaway = {
       id: id(),
 
@@ -151,26 +186,13 @@ function createGiveaway({
 
       createdAt: Date.now(),
 
-      // Number of winners configured by admin.
-      winnerCount:
-        Number.isFinite(Number(winnerCount)) &&
-        Number(winnerCount) >= 0
-          ? Math.floor(Number(winnerCount))
-          : 1,
+      // Number of successful submissions allowed.
+      winnerCount: finalWinnerCount,
 
-      // Messages shown to users depending on submission status.
       messages: {
-        pending:
-          pendingMessage ||
-          'Your submission has been received and is being reviewed.',
-
-        winner:
-          successMessage ||
-          'Congratulations! Your submission was successful.',
-
-        declined:
-          declinedMessage ||
-          'Your submission was not selected. Thank you for participating.',
+        pending: finalPendingMessage,
+        winner: finalSuccessMessage,
+        declined: finalDeclinedMessage,
       },
 
       fields: [],
@@ -204,23 +226,26 @@ function updateGiveaway(giveawayId, patch) {
       Number.isFinite(Number(patch.winnerCount))
     ) {
       giveaway.winnerCount = Math.max(
-        0,
+        1,
         Math.floor(Number(patch.winnerCount))
       );
     }
 
-    // Custom result messages
+    // Make sure messages exist.
     if (!giveaway.messages) {
       giveaway.messages = {
         pending:
           'Your submission has been received and is being reviewed.',
+
         winner:
           'Congratulations! Your submission was successful.',
+
         declined:
           'Your submission was not selected. Thank you for participating.',
       };
     }
 
+    // Individual message properties
     if (typeof patch.pendingMessage === 'string') {
       giveaway.messages.pending = patch.pendingMessage;
     }
@@ -229,25 +254,32 @@ function updateGiveaway(giveawayId, patch) {
       giveaway.messages.winner = patch.successMessage;
     }
 
+    if (typeof patch.winnerMessage === 'string') {
+      giveaway.messages.winner = patch.winnerMessage;
+    }
+
     if (typeof patch.declinedMessage === 'string') {
       giveaway.messages.declined = patch.declinedMessage;
     }
 
-    // Also allow messages to be passed as an object.
+    // Messages object
     if (
       patch.messages &&
       typeof patch.messages === 'object'
     ) {
       if (typeof patch.messages.pending === 'string') {
-        giveaway.messages.pending = patch.messages.pending;
+        giveaway.messages.pending =
+          patch.messages.pending;
       }
 
       if (typeof patch.messages.winner === 'string') {
-        giveaway.messages.winner = patch.messages.winner;
+        giveaway.messages.winner =
+          patch.messages.winner;
       }
 
       if (typeof patch.messages.declined === 'string') {
-        giveaway.messages.declined = patch.messages.declined;
+        giveaway.messages.declined =
+          patch.messages.declined;
       }
     }
 
@@ -290,6 +322,7 @@ function deleteGiveaway(giveawayId) {
 }
 
 // ---------- Fields ----------
+
 function addField(
   giveawayId,
   {
@@ -386,6 +419,8 @@ function deleteField(giveawayId, fieldId) {
     giveaway.fields = giveaway.fields.filter(
       (f) => f.id !== fieldId
     );
+
+    return giveaway.fields;
   });
 }
 
@@ -421,11 +456,41 @@ function reorderFields(
 }
 
 // ---------- Submissions ----------
+
 function addSubmission(
   giveawayId,
   values
 ) {
   return transaction((data) => {
+    const giveaway = data.giveaways.find(
+      (g) => g.id === giveawayId
+    );
+
+    if (!giveaway) return null;
+
+    const configuredWinnerCount =
+      Number(giveaway.winnerCount);
+
+    const winnerLimit =
+      Number.isFinite(configuredWinnerCount) &&
+      configuredWinnerCount >= 1
+        ? Math.floor(configuredWinnerCount)
+        : 1;
+
+    // Count successful submissions already accepted.
+    const successfulCount =
+      data.submissions.filter(
+        (s) =>
+          s.giveawayId === giveawayId &&
+          s.status === 'winner'
+      ).length;
+
+    // Automatically decide the result.
+    const status =
+      successfulCount < winnerLimit
+        ? 'winner'
+        : 'declined';
+
     const submission = {
       id: id(),
 
@@ -435,8 +500,7 @@ function addSubmission(
 
       createdAt: Date.now(),
 
-      // Every new submission starts here.
-      status: 'pending',
+      status,
     };
 
     data.submissions.push(submission);
@@ -468,6 +532,8 @@ function getSubmission(submissionId) {
   );
 }
 
+// Kept for compatibility with older code.
+// New submissions are automatically assigned a status.
 function setSubmissionStatus(
   submissionId,
   status
@@ -490,7 +556,6 @@ function setSubmissionStatus(
       return submission;
     }
 
-    // If changing to winner, respect the giveaway winner limit.
     if (status === 'winner') {
       const giveaway =
         data.giveaways.find(
@@ -498,8 +563,8 @@ function setSubmissionStatus(
         );
 
       if (giveaway) {
-        const winnerCount =
-          Number(giveaway.winnerCount) || 0;
+        const winnerLimit =
+          Number(giveaway.winnerCount) || 1;
 
         const currentWinners =
           data.submissions.filter(
@@ -509,10 +574,7 @@ function setSubmissionStatus(
               s.id !== submissionId
           ).length;
 
-        if (
-          winnerCount > 0 &&
-          currentWinners >= winnerCount
-        ) {
+        if (currentWinners >= winnerLimit) {
           return null;
         }
       }
@@ -525,6 +587,7 @@ function setSubmissionStatus(
 }
 
 // ---------- Winner helpers ----------
+
 function getWinnerCount(giveawayId) {
   const giveaway = getGiveaway(giveawayId);
 
@@ -552,31 +615,42 @@ function getRemainingWinnerSlots(
   const current =
     getCurrentWinnerCount(giveawayId);
 
-  return Math.max(0, total - current);
+  return Math.max(
+    0,
+    total - current
+  );
 }
 
 // ---------- Result message ----------
-function getSubmissionMessage(
-  submission
-) {
-  if (!submission) return '';
 
-  const giveaway =
-    getGiveaway(submission.giveawayId);
+function getSubmissionMessage(
+  giveawayOrId,
+  status
+) {
+  let giveaway = null;
+
+  if (
+    typeof giveawayOrId === 'object' &&
+    giveawayOrId !== null
+  ) {
+    giveaway = giveawayOrId;
+  } else {
+    giveaway = getGiveaway(giveawayOrId);
+  }
 
   if (!giveaway) return '';
 
   const messages =
     giveaway.messages || {};
 
-  if (submission.status === 'winner') {
+  if (status === 'winner') {
     return (
       messages.winner ||
       'Congratulations! Your submission was successful.'
     );
   }
 
-  if (submission.status === 'declined') {
+  if (status === 'declined') {
     return (
       messages.declined ||
       'Your submission was not selected. Thank you for participating.'
