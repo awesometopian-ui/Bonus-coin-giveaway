@@ -4,6 +4,7 @@
 
 <body>
   <div class="wrap">
+
     <%- include('partials/site-header') %>
 
     <section class="hero">
@@ -22,27 +23,40 @@
 
       <% if (activeGiveaway) { %>
 
-        <div class="reward-card">
+        <a
+          href="/rewards"
+          style="
+            display:block;
+            text-decoration:none;
+            color:inherit;
+            cursor:pointer;
+          "
+        >
 
-          <div class="reward-label">
-            CURRENT REWARD
+          <div class="reward-card">
+
+            <div class="reward-label">
+              CURRENT REWARD
+            </div>
+
+            <h2>
+              <%= activeGiveaway.title %>
+            </h2>
+
+            <% if (activeGiveaway.description) { %>
+              <p>
+                <%= activeGiveaway.description %>
+              </p>
+            <% } %>
+
           </div>
 
-          <h2>
-            <%= activeGiveaway.title %>
-          </h2>
-
-          <% if (activeGiveaway.description) { %>
-            <p>
-              <%= activeGiveaway.description %>
-            </p>
-          <% } %>
-
-        </div>
+        </a>
 
       <% } else { %>
 
         <div class="reward-card">
+
           <div class="reward-label">
             GIVEAWAY STATUS
           </div>
@@ -54,6 +68,7 @@
           <p>
             Check back soon for the next available reward.
           </p>
+
         </div>
 
       <% } %>
@@ -61,6 +76,7 @@
     </section>
 
     <%- include('partials/site-footer') %>
+
   </div>
 </body>
 </html>
