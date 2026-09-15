@@ -1,90 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/head', { pageTitle: 'Fields — ' + giveaway.title }) %>
+
 <body class="admin-body">
+
   <%- include('partials/nav') %>
+
   <div class="admin-wrap">
+
     <%- include('partials/flash') %>
 
-    <a href="/admin/giveaways" class="admin-back-link">&larr; All giveaways</a>
-    <h1><%= giveaway.title %></h1>
-    <p class="admin-subtitle">Create the exact fields this giveaway needs — a wallet address, an account number, a username, or anything else. Only enabled fields appear on the public Rewards page, in the order shown below.</p>
+    <a href="/admin/giveaways" class="admin-back-link">
+      &larr; All giveaways
+    </a>
 
+    <h1><%= giveaway.title %></h1>
+
+    <p class="admin-subtitle">
+      Create the exact fields users need to submit.
+      Only enabled fields appear on the public Rewards page.
+    </p>
+
+
+    <!-- ADD FIELD -->
     <div class="panel">
+
       <div class="eyebrow">Add a field</div>
-      <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/fields">
+
+      <form
+        method="POST"
+        action="/admin/giveaways/<%= giveaway.id %>/fields"
+      >
+
         <div class="field">
-          <label for="label">Field name / label</label>
-          <input type="text" id="label" name="label" placeholder="e.g. Wallet Address" required />
+
+          <label for="label">
+            Field name / label
+          </label>
+
+          <input
+            type="text"
+            id="label"
+            name="label"
+            placeholder="e.g. Wallet Address"
+            required
+          />
+
         </div>
+
+
         <div class="field">
-          <label for="placeholder">Placeholder text <span class="optional-mark">(optional)</span></label>
-          <input type="text" id="placeholder" name="placeholder" placeholder="e.g. Paste your wallet address" />
+
+          <label for="placeholder">
+            Placeholder text
+            <span class="optional-mark">(optional)</span>
+          </label>
+
+          <input
+            type="text"
+            id="placeholder"
+            name="placeholder"
+            placeholder="e.g. Paste your wallet address"
+          />
+
         </div>
+
+
         <div class="field-inline-options">
-          <label class="checkbox-label"><input type="checkbox" name="required" checked /> Required</label>
-          <label class="checkbox-label"><input type="checkbox" name="copyable" /> Show copy button</label>
+
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              name="required"
+              checked
+            />
+            Required
+          </label>
+
         </div>
-        <button type="submit" class="btn btn-primary">Add field</button>
+
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+        >
+          Add field
+        </button>
+
       </form>
+
     </div>
 
+
+    <!-- EXISTING FIELDS -->
     <% if (fields.length === 0) { %>
+
       <div class="panel empty-state">
-        <p>No fields yet. This giveaway won't accept entries until you add at least one field above.</p>
+        <p>
+          No fields yet. This giveaway won't accept entries
+          until you add at least one field above.
+        </p>
       </div>
+
     <% } else { %>
-      <div class="panel" style="padding: 8px;">
+
+      <div class="panel" style="padding:8px;">
+
         <% fields.forEach(function(field, index) { %>
-          <div class="field-row <%= !field.enabled ? 'field-row-disabled' : '' %>">
+
+          <div
+            class="field-row <%= !field.enabled ? 'field-row-disabled' : '' %>"
+          >
+
             <div class="field-row-main">
+
               <div class="field-row-title">
+
                 <%= field.label %>
-                <% if (field.required) { %><span class="tag tag-required">Required</span><% } %>
-                <% if (field.copyable) { %><span class="tag tag-copy">Copy button</span><% } %>
-                <% if (!field.enabled) { %><span class="tag tag-disabled">Disabled</span><% } %>
+
+                <% if (field.required) { %>
+                  <span class="tag tag-required">
+                    Required
+                  </span>
+                <% } %>
+
+                <% if (!field.enabled) { %>
+                  <span class="tag tag-disabled">
+                    Disabled
+                  </span>
+                <% } %>
+
               </div>
-              <div class="field-row-sub">Placeholder: <%= field.placeholder || '—' %></div>
+
+              <div class="field-row-sub">
+                Placeholder:
+                <%= field.placeholder || '—' %>
+              </div>
+
             </div>
+
+
             <div class="field-row-actions">
-              <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/move" style="display:inline;">
-                <input type="hidden" name="direction" value="up" />
-                <button type="submit" class="icon-btn" title="Move up" <%= index === 0 ? 'disabled' : '' %>>&uarr;</button>
+
+              <!-- MOVE UP -->
+              <form
+                method="POST"
+                action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/move"
+                style="display:inline;"
+              >
+
+                <input
+                  type="hidden"
+                  name="direction"
+                  value="up"
+                />
+
+                <button
+                  type="submit"
+                  class="icon-btn"
+                  title="Move up"
+                  <%= index === 0 ? 'disabled' : '' %>
+                >
+                  &uarr;
+                </button>
+
               </form>
-              <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/move" style="display:inline;">
-                <input type="hidden" name="direction" value="down" />
-                <button type="submit" class="icon-btn" title="Move down" <%= index === fields.length - 1 ? 'disabled' : '' %>>&darr;</button>
+
+
+              <!-- MOVE DOWN -->
+              <form
+                method="POST"
+                action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/move"
+                style="display:inline;"
+              >
+
+                <input
+                  type="hidden"
+                  name="direction"
+                  value="down"
+                />
+
+                <button
+                  type="submit"
+                  class="icon-btn"
+                  title="Move down"
+                  <%= index === fields.length - 1 ? 'disabled' : '' %>
+                >
+                  &darr;
+                </button>
+
               </form>
+
             </div>
+
           </div>
+
+
+          <!-- EDIT FIELD -->
           <details class="admin-edit-details field-edit-form">
-            <summary>Edit "<%= field.label %>"</summary>
-            <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/update" style="margin-top:14px;">
+
+            <summary>
+              Edit "<%= field.label %>"
+            </summary>
+
+            <form
+              method="POST"
+              action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/update"
+              style="margin-top:14px;"
+            >
+
               <div class="field">
-                <label>Field name / label</label>
-                <input type="text" name="label" value="<%= field.label %>" required />
+
+                <label>
+                  Field name / label
+                </label>
+
+                <input
+                  type="text"
+                  name="label"
+                  value="<%= field.label %>"
+                  required
+                />
+
               </div>
+
+
               <div class="field">
-                <label>Placeholder text</label>
-                <input type="text" name="placeholder" value="<%= field.placeholder %>" />
+
+                <label>
+                  Placeholder text
+                </label>
+
+                <input
+                  type="text"
+                  name="placeholder"
+                  value="<%= field.placeholder || '' %>"
+                />
+
               </div>
+
+
               <div class="field-inline-options">
-                <label class="checkbox-label"><input type="checkbox" name="required" <%= field.required ? 'checked' : '' %> /> Required</label>
-                <label class="checkbox-label"><input type="checkbox" name="copyable" <%= field.copyable ? 'checked' : '' %> /> Show copy button</label>
-                <label class="checkbox-label"><input type="checkbox" name="enabled" <%= field.enabled ? 'checked' : '' %> /> Enabled (visible on site)</label>
+
+                <label class="checkbox-label">
+
+                  <input
+                    type="checkbox"
+                    name="required"
+                    <%= field.required ? 'checked' : '' %>
+                  />
+
+                  Required
+
+                </label>
+
+
+                <label class="checkbox-label">
+
+                  <input
+                    type="checkbox"
+                    name="enabled"
+                    <%= field.enabled ? 'checked' : '' %>
+                  />
+
+                  Enabled (visible on site)
+
+                </label>
+
               </div>
+
+
               <div class="admin-btn-row">
-                <button type="submit" class="btn btn-secondary btn-small">Save field</button>
+
+                <button
+                  type="submit"
+                  class="btn btn-secondary btn-small"
+                >
+                  Save field
+                </button>
+
               </div>
+
             </form>
-            <form method="POST" action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/delete" style="margin-top:10px;" data-confirm="Delete the field '<%= field.label %>'? Existing submissions keep their data, but the field will no longer appear on the site.">
-              <button type="submit" class="btn btn-danger btn-small">Delete field</button>
+
+
+            <!-- DELETE FIELD -->
+            <form
+              method="POST"
+              action="/admin/giveaways/<%= giveaway.id %>/fields/<%= field.id %>/delete"
+              style="margin-top:10px;"
+              data-confirm="Delete the field '<%= field.label %>'? Existing submissions keep their data, but the field will no longer appear on the site."
+            >
+
+              <button
+                type="submit"
+                class="btn btn-danger btn-small"
+              >
+                Delete field
+              </button>
+
             </form>
+
           </details>
+
         <% }); %>
+
       </div>
+
     <% } %>
+
   </div>
+
   <script src="/js/admin.js"></script>
+
 </body>
 </html>
