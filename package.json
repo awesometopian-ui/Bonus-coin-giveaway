@@ -11,6 +11,7 @@
     "hash-password": "node scripts/hash-password.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
     "bcryptjs": "^2.4.3",
     "connect-flash": "^0.1.1",
     "dotenv": "^16.4.5",
