@@ -1,4 +1,17 @@
 <header class="site-header">
-  <%- include('coin-mark', { size: 34 }) %>
-  <span class="site-name"><%= settings.siteName %></span>
+
+  <a href="/" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:10px;">
+    <%- include('coin-mark', { size: 34 }) %>
+    <span class="site-name"><%= settings.siteName %></span>
+  </a>
+
+  <nav style="margin-left:auto;">
+    <a
+      href="/"
+      style="text-decoration:none; color:inherit; font-weight:600;"
+    >
+      Home
+    </a>
+  </nav>
+
 </header>
