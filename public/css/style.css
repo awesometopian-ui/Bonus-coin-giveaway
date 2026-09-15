@@ -77,6 +77,7 @@ p {
   margin: 0 auto;
 }
 
+
 /* =========================
    HEADER
 ========================= */
@@ -119,6 +120,7 @@ p {
 .site-header nav a:hover {
   color: var(--green);
 }
+
 
 /* =========================
    HERO
@@ -210,6 +212,7 @@ p {
   color: var(--text-soft);
 }
 
+
 /* =========================
    BUTTONS
 ========================= */
@@ -297,6 +300,7 @@ p {
   border-color: #ffd5da;
 }
 
+
 /* =========================
    FEATURES
 ========================= */
@@ -351,6 +355,7 @@ p {
   margin: 0;
 }
 
+
 /* =========================
    CARDS / PANELS
 ========================= */
@@ -401,6 +406,7 @@ p {
   color: var(--text-soft);
 }
 
+
 /* =========================
    REWARDS
 ========================= */
@@ -440,6 +446,7 @@ p {
 
   font-weight: 800;
 }
+
 
 /* =========================
    FORMS
@@ -524,6 +531,7 @@ textarea:focus {
   gap: 8px;
 }
 
+
 /* =========================
    NOTICE
 ========================= */
@@ -550,6 +558,7 @@ textarea:focus {
   margin: 18px 0;
 }
 
+
 /* =========================
    CHECKBOX
 ========================= */
@@ -571,6 +580,7 @@ textarea:focus {
 .checkbox-label input {
   accent-color: var(--green);
 }
+
 
 /* =========================
    COPY BUTTON
@@ -595,6 +605,7 @@ textarea:focus {
 .copy-btn:hover {
   background: var(--green-light);
 }
+
 
 /* =========================
    CONFIRMATION
@@ -648,6 +659,7 @@ textarea:focus {
   word-break: break-word;
 }
 
+
 /* =========================
    FOOTER
 ========================= */
@@ -665,6 +677,7 @@ textarea:focus {
 
   font-size: .8rem;
 }
+
 
 /* =========================
    ADMIN
@@ -711,6 +724,11 @@ textarea:focus {
   width: 100%;
 }
 
+
+/* =========================
+   ADMIN HEADER
+========================= */
+
 .admin-header {
   background: var(--green-deep);
 
@@ -730,40 +748,93 @@ textarea:focus {
 
   align-items: center;
 
-  gap: 25px;
+  gap: 24px;
 }
 
 .admin-brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
   color: white;
 
   text-decoration: none;
 
   font-weight: 800;
+
+  white-space: nowrap;
+
+  flex-shrink: 0;
 }
 
 .admin-nav {
   display: flex;
 
-  gap: 18px;
+  align-items: center;
+
+  gap: 20px;
 
   flex: 1;
 
-  flex-wrap: wrap;
+  min-width: 0;
+
+  flex-wrap: nowrap;
 }
 
 .admin-nav a {
-  color: rgba(255,255,255,.75);
+  color: rgba(255,255,255,.82);
 
   text-decoration: none;
 
   font-size: .82rem;
 
   font-weight: 600;
+
+  white-space: nowrap;
 }
 
 .admin-nav a:hover {
   color: white;
 }
+
+.admin-logout-form {
+  margin-left: auto;
+
+  flex-shrink: 0;
+}
+
+.btn-link {
+  padding: 8px 14px;
+
+  border: 1px solid rgba(255,255,255,.25);
+
+  background: rgba(255,255,255,.10);
+
+  color: white;
+
+  border-radius: 10px;
+
+  font-family: inherit;
+
+  font-size: .8rem;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+}
+
+.btn-link:hover {
+  background: rgba(255,255,255,.18);
+}
+
+
+/* =========================
+   ADMIN CONTENT
+========================= */
 
 .admin-wrap {
   width: min(100% - 30px, 1100px);
@@ -819,6 +890,7 @@ textarea:focus {
   font-size: .78rem;
 }
 
+
 /* =========================
    BADGES
 ========================= */
@@ -849,6 +921,7 @@ textarea:focus {
   color: #806200;
 }
 
+
 /* =========================
    FLASH
 ========================= */
@@ -874,6 +947,7 @@ textarea:focus {
 
   color: var(--danger);
 }
+
 
 /* =========================
    ADMIN FIELDS
@@ -953,6 +1027,7 @@ textarea:focus {
   color: var(--green-dark);
 }
 
+
 /* =========================
    MOBILE
 ========================= */
@@ -1007,19 +1082,71 @@ textarea:focus {
     border-radius: 17px;
   }
 
+
+  /* ADMIN MOBILE HEADER */
+
   .admin-header-inner {
-    width: min(100% - 24px, 1100px);
+    width: min(100% - 20px, 1100px);
 
-    padding: 13px 0;
+    min-height: 62px;
 
-    flex-wrap: wrap;
+    padding: 10px 0;
+
+    display: grid;
+
+    grid-template-columns: auto 1fr auto;
+
+    align-items: center;
+
+    gap: 12px;
+  }
+
+  .admin-brand {
+    font-size: .95rem;
   }
 
   .admin-nav {
-    width: 100%;
+    width: auto;
 
-    gap: 10px;
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    overflow-x: auto;
+
+    min-width: 0;
+
+    flex-wrap: nowrap;
+
+    scrollbar-width: none;
   }
+
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-nav a {
+    font-size: .72rem;
+
+    white-space: nowrap;
+
+    flex-shrink: 0;
+  }
+
+  .admin-logout-form {
+    margin-left: 0;
+  }
+
+  .btn-link {
+    padding: 7px 10px;
+
+    font-size: .72rem;
+  }
+
+
+  /* ADMIN CONTENT */
 
   .admin-wrap {
     width: min(100% - 24px, 1100px);
@@ -1053,6 +1180,7 @@ textarea:focus {
   }
 }
 
+
 /* =========================
    SMALL PHONES
 ========================= */
@@ -1069,5 +1197,23 @@ textarea:focus {
 
   .site-name {
     font-size: .9rem;
+  }
+
+  .admin-header-inner {
+    gap: 8px;
+  }
+
+  .admin-nav {
+    gap: 10px;
+  }
+
+  .admin-nav a {
+    font-size: .68rem;
+  }
+
+  .btn-link {
+    padding: 6px 8px;
+
+    font-size: .68rem;
   }
   }
