@@ -78,11 +78,18 @@ router.get('/', (req, res) => {
 // ---------- Settings ----------
 router.get('/settings', (req, res) => {
   const settings = db.getSettings();
-  res.render('admin/settings', { settings });
+
+  res.render('admin/settings', {
+    settings,
+  });
 });
 
 router.post('/settings', async (req, res) => {
-  const { siteName, welcomeTitle, welcomeMessage } = req.body;
+  const {
+    siteName,
+    welcomeTitle,
+    welcomeMessage,
+  } = req.body;
 
   await db.updateSettings({
     siteName,
@@ -97,7 +104,10 @@ router.post('/settings', async (req, res) => {
 // ---------- Giveaways ----------
 router.get('/giveaways', (req, res) => {
   const giveaways = db.getGiveaways();
-  res.render('admin/giveaways', { giveaways });
+
+  res.render('admin/giveaways', {
+    giveaways,
+  });
 });
 
 router.post('/giveaways', async (req, res) => {
@@ -114,11 +124,9 @@ router.post('/giveaways', async (req, res) => {
     title,
     description,
     winnerCount: Number(winnerCount) || 1,
-    messages: {
-      pending: pendingMessage,
-      winner: winnerMessage,
-      declined: declinedMessage,
-    },
+    pendingMessage,
+    successMessage: winnerMessage,
+    declinedMessage,
   });
 
   req.flash(
@@ -143,39 +151,59 @@ router.post('/giveaways/:id/update', async (req, res) => {
     title,
     description,
     winnerCount: Number(winnerCount) || 1,
-    messages: {
-      pending: pendingMessage,
-      winner: winnerMessage,
-      declined: declinedMessage,
-    },
+    pendingMessage,
+    successMessage: winnerMessage,
+    declinedMessage,
   });
-
-  req.flash('success', 'Giveaway settings updated.');
-  res.redirect('/admin/giveaways');
-});
-
-router.post('/giveaways/:id/activate', async (req, res) => {
-  await db.setActiveGiveaway(req.params.id);
-
-  req.flash('success', 'Giveaway is now live on the public site.');
-  res.redirect('/admin/giveaways');
-});
-
-router.post('/giveaways/:id/deactivate', async (req, res) => {
-  await db.deactivateAllGiveaways();
 
   req.flash(
     'success',
-    'Giveaway taken offline. The Rewards page will show no active reward.'
+    'Giveaway settings updated.'
   );
 
   res.redirect('/admin/giveaways');
 });
 
+// ---------- Activate ----------
+router.post('/giveaways/:id/activate', async (req, res) => {
+  const giveaway = db.getGiveaway(req.params.id);
+
+  if (!giveaway) {
+    req.flash('error', 'Giveaway not found.');
+    return res.redirect('/admin/giveaways');
+  }
+
+  await db.setActiveGiveaway(req.params.id);
+
+  req.flash(
+    'success',
+    'Giveaway is now live on the public site.'
+  );
+
+  res.redirect('/admin/giveaways');
+});
+
+// ---------- Deactivate ----------
+router.post('/giveaways/:id/deactivate', async (req, res) => {
+  await db.deactivateAllGiveaways();
+
+  req.flash(
+    'success',
+    'Giveaway taken offline.'
+  );
+
+  res.redirect('/admin/giveaways');
+});
+
+// ---------- Delete ----------
 router.post('/giveaways/:id/delete', async (req, res) => {
   await db.deleteGiveaway(req.params.id);
 
-  req.flash('success', 'Giveaway and its submissions were deleted.');
+  req.flash(
+    'success',
+    'Giveaway and its submissions were deleted.'
+  );
+
   res.redirect('/admin/giveaways');
 });
 
@@ -199,7 +227,12 @@ router.get('/giveaways/:id/fields', (req, res) => {
 });
 
 router.post('/giveaways/:id/fields', async (req, res) => {
-  const { label, placeholder, required, copyable } = req.body;
+  const {
+    label,
+    placeholder,
+    required,
+    copyable,
+  } = req.body;
 
   await db.addField(req.params.id, {
     label,
@@ -209,152 +242,146 @@ router.post('/giveaways/:id/fields', async (req, res) => {
   });
 
   req.flash('success', 'Field added.');
-  res.redirect(`/admin/giveaways/${req.params.id}/fields`);
+
+  res.redirect(
+    `/admin/giveaways/${req.params.id}/fields`
+  );
 });
 
-router.post('/giveaways/:id/fields/:fieldId/update', async (req, res) => {
-  const {
-    label,
-    placeholder,
-    required,
-    copyable,
-    enabled,
-  } = req.body;
+router.post(
+  '/giveaways/:id/fields/:fieldId/update',
+  async (req, res) => {
+    const {
+      label,
+      placeholder,
+      required,
+      copyable,
+      enabled,
+    } = req.body;
 
-  await db.updateField(req.params.id, req.params.fieldId, {
-    label,
-    placeholder,
-    required: required === 'on',
-    copyable: copyable === 'on',
-    enabled: enabled === 'on',
-  });
+    await db.updateField(
+      req.params.id,
+      req.params.fieldId,
+      {
+        label,
+        placeholder,
+        required: required === 'on',
+        copyable: copyable === 'on',
+        enabled: enabled === 'on',
+      }
+    );
 
-  req.flash('success', 'Field updated.');
-  res.redirect(`/admin/giveaways/${req.params.id}/fields`);
-});
+    req.flash('success', 'Field updated.');
 
-router.post('/giveaways/:id/fields/:fieldId/delete', async (req, res) => {
-  await db.deleteField(req.params.id, req.params.fieldId);
+    res.redirect(
+      `/admin/giveaways/${req.params.id}/fields`
+    );
+  }
+);
 
-  req.flash('success', 'Field deleted.');
-  res.redirect(`/admin/giveaways/${req.params.id}/fields`);
-});
+router.post(
+  '/giveaways/:id/fields/:fieldId/delete',
+  async (req, res) => {
+    await db.deleteField(
+      req.params.id,
+      req.params.fieldId
+    );
 
-router.post('/giveaways/:id/fields/:fieldId/move', async (req, res) => {
-  const { direction } = req.body;
+    req.flash('success', 'Field deleted.');
 
-  const giveaway = db.getGiveaway(req.params.id);
+    res.redirect(
+      `/admin/giveaways/${req.params.id}/fields`
+    );
+  }
+);
 
-  if (giveaway) {
-    const sorted = giveaway.fields
+router.post(
+  '/giveaways/:id/fields/:fieldId/move',
+  async (req, res) => {
+    const { direction } = req.body;
+
+    const giveaway = db.getGiveaway(req.params.id);
+
+    if (giveaway) {
+      const sorted = giveaway.fields
+        .slice()
+        .sort((a, b) => a.order - b.order);
+
+      const index = sorted.findIndex(
+        (field) => field.id === req.params.fieldId
+      );
+
+      const swapWith =
+        direction === 'up'
+          ? index - 1
+          : index + 1;
+
+      if (
+        index !== -1 &&
+        swapWith >= 0 &&
+        swapWith < sorted.length
+      ) {
+        const ids = sorted.map(
+          (field) => field.id
+        );
+
+        [ids[index], ids[swapWith]] = [
+          ids[swapWith],
+          ids[index],
+        ];
+
+        await db.reorderFields(
+          req.params.id,
+          ids
+        );
+      }
+    }
+
+    res.redirect(
+      `/admin/giveaways/${req.params.id}/fields`
+    );
+  }
+);
+
+// ---------- Submissions ----------
+router.get(
+  '/giveaways/:id/submissions',
+  (req, res) => {
+    const giveaway = db.getGiveaway(req.params.id);
+
+    if (!giveaway) {
+      req.flash(
+        'error',
+        'Giveaway not found.'
+      );
+
+      return res.redirect('/admin/giveaways');
+    }
+
+    const fields = giveaway.fields
       .slice()
       .sort((a, b) => a.order - b.order);
 
-    const index = sorted.findIndex(
-      (f) => f.id === req.params.fieldId
-    );
-
-    const swapWith =
-      direction === 'up' ? index - 1 : index + 1;
-
-    if (
-      index !== -1 &&
-      swapWith >= 0 &&
-      swapWith < sorted.length
-    ) {
-      const ids = sorted.map((f) => f.id);
-
-      [ids[index], ids[swapWith]] = [
-        ids[swapWith],
-        ids[index],
-      ];
-
-      await db.reorderFields(req.params.id, ids);
-    }
-  }
-
-  res.redirect(`/admin/giveaways/${req.params.id}/fields`);
-});
-
-// ---------- Submissions ----------
-router.get('/giveaways/:id/submissions', (req, res) => {
-  const giveaway = db.getGiveaway(req.params.id);
-
-  if (!giveaway) {
-    req.flash('error', 'Giveaway not found.');
-    return res.redirect('/admin/giveaways');
-  }
-
-  const fields = giveaway.fields
-    .slice()
-    .sort((a, b) => a.order - b.order);
-
-  const submissions = db.getSubmissionsForGiveaway(
-    req.params.id
-  );
-
-  res.render('admin/submissions', {
-    giveaway,
-    fields,
-    submissions,
-  });
-});
-
-// ---------- Change submission status ----------
-router.post(
-  '/giveaways/:id/submissions/:subId/status',
-  async (req, res) => {
-    const { status } = req.body;
-
-    const allowedStatuses = [
-      'pending',
-      'winner',
-      'declined',
-    ];
-
-    if (!allowedStatuses.includes(status)) {
-      req.flash('error', 'Invalid submission status.');
-      return res.redirect(
-        `/admin/giveaways/${req.params.id}/submissions`
-      );
-    }
-
-    const submission = db.getSubmission(req.params.subId);
-
-    if (!submission) {
-      req.flash('error', 'Submission not found.');
-      return res.redirect(
-        `/admin/giveaways/${req.params.id}/submissions`
-      );
-    }
-
-    const updated = await db.setSubmissionStatus(
-      req.params.subId,
-      status
-    );
-
-    if (!updated && status === 'winner') {
-      req.flash(
-        'error',
-        'The winner limit has already been reached.'
+    const submissions =
+      db.getSubmissionsForGiveaway(
+        req.params.id
       );
 
-      return res.redirect(
-        `/admin/giveaways/${req.params.id}/submissions`
+    const winnerCount =
+      db.getWinnerCount(req.params.id);
+
+    const currentWinnerCount =
+      db.getCurrentWinnerCount(
+        req.params.id
       );
-    }
 
-    const messages = {
-      pending: 'Submission marked as pending.',
-      winner: 'Submission marked as successful/winner.',
-      declined: 'Submission marked as declined.',
-    };
-
-    req.flash('success', messages[status]);
-
-    res.redirect(
-      `/admin/giveaways/${req.params.id}/submissions`
-    );
+    res.render('admin/submissions', {
+      giveaway,
+      fields,
+      submissions,
+      winnerCount,
+      currentWinnerCount,
+    });
   }
 );
 
