@@ -22,6 +22,35 @@
       Submitted data is only visible to signed-in administrators.
     </p>
 
+    <div class="panel" style="margin-bottom:20px;">
+
+      <div style="display:flex; gap:20px; flex-wrap:wrap;">
+
+        <div>
+          <div class="admin-meta">WINNER LIMIT</div>
+          <strong>
+            <%= giveaway.winnerCount || 1 %>
+          </strong>
+        </div>
+
+        <div>
+          <div class="admin-meta">SUCCESSFUL</div>
+          <strong>
+            <%= currentWinnerCount || 0 %>
+          </strong>
+        </div>
+
+        <div>
+          <div class="admin-meta">TOTAL SUBMISSIONS</div>
+          <strong>
+            <%= submissions.length %>
+          </strong>
+        </div>
+
+      </div>
+
+    </div>
+
 
     <% if (submissions.length === 0) { %>
 
@@ -31,8 +60,7 @@
 
     <% } else { %>
 
-
-      <% submissions.forEach(function(sub) { %>
+      <% submissions.forEach(function(sub, index) { %>
 
         <div class="panel">
 
@@ -47,7 +75,7 @@
                   🟢 SUCCESSFUL
                 </span>
 
-              <% } else if (sub.status === 'declined') { %>
+              <% } else { %>
 
                 <span
                   class="badge"
@@ -56,18 +84,13 @@
                   🔴 DECLINED
                 </span>
 
-              <% } else { %>
-
-                <span
-                  class="badge"
-                  style="background:#eab308;color:#111;"
-                >
-                  🟡 PENDING
-                </span>
-
               <% } %>
 
-              <span class="admin-meta">
+              <span class="admin-meta" style="margin-left:8px;">
+                Submission #<%= index + 1 %>
+              </span>
+
+              <span class="admin-meta" style="margin-left:8px;">
                 <%= new Date(sub.createdAt).toLocaleString() %>
               </span>
 
@@ -104,9 +127,15 @@
                       class="copy-btn"
                       data-copy-value="<%= sub.values[field.id] %>"
                       onclick="
-                        navigator.clipboard.writeText(this.dataset.copyValue);
-                        this.textContent='Copied!';
-                        setTimeout(() => this.textContent='Copy', 1200);
+                        navigator.clipboard.writeText(this.dataset.copyValue)
+                          .then(() => {
+                            this.textContent = 'Copied!';
+                            setTimeout(() => this.textContent = 'Copy', 1200);
+                          })
+                          .catch(() => {
+                            this.textContent = 'Copy failed';
+                            setTimeout(() => this.textContent = 'Copy', 1200);
+                          });
                       "
                     >
                       Copy
@@ -119,96 +148,6 @@
               <% }); %>
 
             <% } %>
-
-          </div>
-
-
-          <!-- STATUS CONTROLS -->
-          <div style="margin-top:18px;">
-
-            <div style="margin-bottom:8px;font-weight:600;">
-              Submission Status
-            </div>
-
-            <div
-              style="
-                display:flex;
-                gap:8px;
-                flex-wrap:wrap;
-              "
-            >
-
-              <!-- PENDING -->
-              <form
-                method="POST"
-                action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/status"
-              >
-
-                <input
-                  type="hidden"
-                  name="status"
-                  value="pending"
-                >
-
-                <button
-                  type="submit"
-                  class="btn btn-secondary btn-small"
-                >
-                  🟡 Pending
-                </button>
-
-              </form>
-
-
-              <!-- SUCCESSFUL / WINNER -->
-              <form
-                method="POST"
-                action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/status"
-              >
-
-                <input
-                  type="hidden"
-                  name="status"
-                  value="winner"
-                >
-
-                <button
-                  type="submit"
-                  class="btn btn-primary btn-small"
-                >
-                  🟢 Successful
-                </button>
-
-              </form>
-
-
-              <!-- DECLINED -->
-              <form
-                method="POST"
-                action="/admin/giveaways/<%= giveaway.id %>/submissions/<%= sub.id %>/status"
-              >
-
-                <input
-                  type="hidden"
-                  name="status"
-                  value="declined"
-                >
-
-                <button
-                  type="submit"
-                  class="btn btn-small"
-                  style="
-                    background:#dc2626;
-                    color:white;
-                    border:none;
-                  "
-                >
-                  🔴 Declined
-                </button>
-
-              </form>
-
-            </div>
 
           </div>
 
