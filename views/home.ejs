@@ -1,26 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/head', { pageTitle: settings.siteName }) %>
+
 <body>
   <div class="wrap">
     <%- include('partials/site-header') %>
 
     <section class="hero">
+
       <div class="hero-coin">
         <%- include('partials/coin-mark', { size: 56 }) %>
       </div>
+
+      <span class="crypto-badge">● LIVE GIVEAWAY</span>
+
       <h1><%= settings.welcomeTitle %></h1>
-      <p class="lede"><%= settings.welcomeMessage %></p>
+
+      <p class="lede">
+        <%= settings.welcomeMessage %>
+      </p>
 
       <% if (activeGiveaway) { %>
-        <p class="lede"><strong><%= activeGiveaway.title %></strong> is live right now.</p>
+
+        <div class="reward-card">
+
+          <div class="reward-label">
+            CURRENT REWARD
+          </div>
+
+          <h2>
+            <%= activeGiveaway.title %>
+          </h2>
+
+          <% if (activeGiveaway.description) { %>
+            <p>
+              <%= activeGiveaway.description %>
+            </p>
+          <% } %>
+
+        </div>
+
       <% } else { %>
-        <p class="lede">Check the Rewards page to see what's currently available.</p>
+
+        <div class="reward-card">
+          <div class="reward-label">
+            GIVEAWAY STATUS
+          </div>
+
+          <h2>
+            No active giveaway
+          </h2>
+
+          <p>
+            Check back soon for the next available reward.
+          </p>
+        </div>
+
       <% } %>
 
-      <div class="btn-row">
-  <a class="btn btn-primary" href="/rewards#claim">Claim reward</a>
-</div>
+    </section>
 
     <%- include('partials/site-footer') %>
   </div>
