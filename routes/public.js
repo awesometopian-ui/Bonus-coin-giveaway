@@ -60,12 +60,15 @@ router.post('/rewards/claim', claimLimiter, async (req, res) => {
   const errors = {};
 
   fields.forEach((field) => {
-    const raw = (req.body[field.id] || '').toString().trim();
+    const raw = (req.body[field.id] || '')
+      .toString()
+      .trim();
 
     values[field.id] = raw;
 
     if (field.required && !raw) {
-      errors[field.id] = `${field.label} is required.`;
+      errors[field.id] =
+        `${field.label} is required.`;
     }
   });
 
@@ -80,19 +83,26 @@ router.post('/rewards/claim', claimLimiter, async (req, res) => {
     });
   }
 
-  // Save submission
+  // Save submission.
+  // db.js automatically decides whether this is
+  // successful or declined based on winnerCount.
   const submission = await db.addSubmission(
     activeGiveaway.id,
     values
   );
 
-  // Get the final status assigned by the database
-  const status = submission.status || 'pending';
+  if (!submission) {
+    return res.redirect('/rewards');
+  }
 
-  // Get the custom message configured by admin
+  const status = submission.status;
+
+  // Get the message configured by admin.
   const message =
-    db.getSubmissionMessage(activeGiveaway.id, status) ||
-    'Your submission has been successfully received.';
+    db.getSubmissionMessage(
+      activeGiveaway,
+      status
+    );
 
   const submittedFields = fields.map((field) => ({
     label: field.label,
