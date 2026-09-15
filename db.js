@@ -1,93 +1,31 @@
 /**
- * Simple file-backed data layer.
+ * Supabase-backed data layer.
  *
- * Everything the admin manages is stored in data/db.json.
- * Writes are serialized through a tiny in-process queue.
+ * All giveaway data is stored in Supabase.
+ * No local db.json is used.
  */
 
-const fs = require('fs');
-const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 
-const DB_PATH = path.join(__dirname, 'data', 'db.json');
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-function defaultData() {
-  return {
-    settings: {
-      siteName: 'Bonus Coin Giveaway',
-      welcomeTitle: 'Welcome!',
-      welcomeMessage:
-        'Thanks for stopping by. Check the current reward below and submit your entry.',
-    },
-
-    giveaways: [],
-
-    submissions: [],
-  };
+if (!SUPABASE_URL) {
+  throw new Error('SUPABASE_URL is missing.');
 }
 
-function ensureDbFile() {
-  const dir = path.dirname(DB_PATH);
-
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
-  if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(
-      DB_PATH,
-      JSON.stringify(defaultData(), null, 2)
-    );
-  }
-}
-
-function readRaw() {
-  ensureDbFile();
-
-  const raw = fs.readFileSync(DB_PATH, 'utf8');
-
-  try {
-    return JSON.parse(raw);
-  } catch (err) {
-    fs.writeFileSync(
-      DB_PATH + `.broken.${Date.now()}`,
-      raw
-    );
-
-    const fresh = defaultData();
-
-    fs.writeFileSync(
-      DB_PATH,
-      JSON.stringify(fresh, null, 2)
-    );
-
-    return fresh;
-  }
-}
-
-function writeRaw(data) {
-  fs.writeFileSync(
-    DB_PATH,
-    JSON.stringify(data, null, 2)
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error(
+    'SUPABASE_SERVICE_ROLE_KEY is missing.'
   );
 }
 
-// ---------- Write queue ----------
-
-let queue = Promise.resolve();
-
-function transaction(mutator) {
-  queue = queue.then(() => {
-    const data = readRaw();
-    const result = mutator(data);
-
-    writeRaw(data);
-
-    return result;
-  });
-
-  return queue;
-}
+const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY
+);
 
 function id() {
   return crypto.randomUUID();
@@ -95,47 +33,115 @@ function id() {
 
 // ---------- Settings ----------
 
-function getSettings() {
-  return readRaw().settings;
-}
+async function getSettings() {
+  const { data, error } = await supabase
+    .from('settings')
+    .select('data')
+    .eq('id', 1)
+    .maybeSingle();
 
-function updateSettings(patch) {
-  return transaction((data) => {
-    data.settings = {
-      ...data.settings,
-      ...patch,
+  if (error) throw error;
+
+  if (!data) {
+    const settings = {
+      siteName: 'Bonus Coin Giveaway',
+      welcomeTitle: 'Welcome!',
+      welcomeMessage:
+        'Thanks for stopping by. Check the current reward below and submit your entry.',
     };
 
-    return data.settings;
-  });
+    const { error: insertError } = await supabase
+      .from('settings')
+      .insert({
+        id: 1,
+        data: settings,
+      });
+
+    if (insertError) throw insertError;
+
+    return settings;
+  }
+
+  return data.data;
+}
+
+async function updateSettings(patch) {
+  const current = await getSettings();
+
+  const settings = {
+    ...current,
+    ...patch,
+  };
+
+  const { error } = await supabase
+    .from('settings')
+    .upsert({
+      id: 1,
+      data: settings,
+    });
+
+  if (error) throw error;
+
+  return settings;
 }
 
 // ---------- Giveaways ----------
 
-function getGiveaways() {
-  return readRaw()
-    .giveaways
-    .slice()
-    .sort((a, b) => b.createdAt - a.createdAt);
+function normalizeGiveaway(row) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description || '',
+    active: !!row.active,
+    createdAt: Number(row.created_at),
+    winnerCount: Number(row.winner_count) || 1,
+    messages: row.messages || {},
+    fields: Array.isArray(row.fields)
+      ? row.fields
+      : [],
+  };
 }
 
-function getGiveaway(giveawayId) {
-  return (
-    readRaw()
-      .giveaways
-      .find((g) => g.id === giveawayId) || null
-  );
+async function getGiveaways() {
+  const { data, error } = await supabase
+    .from('giveaways')
+    .select('*')
+    .order('created_at', {
+      ascending: false,
+    });
+
+  if (error) throw error;
+
+  return (data || []).map(normalizeGiveaway);
 }
 
-function getActiveGiveaway() {
-  return (
-    readRaw()
-      .giveaways
-      .find((g) => g.active) || null
-  );
+async function getGiveaway(giveawayId) {
+  const { data, error } = await supabase
+    .from('giveaways')
+    .select('*')
+    .eq('id', giveawayId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return normalizeGiveaway(data);
 }
 
-function createGiveaway({
+async function getActiveGiveaway() {
+  const { data, error } = await supabase
+    .from('giveaways')
+    .select('*')
+    .eq('active', true)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return normalizeGiveaway(data);
+}
+
+async function createGiveaway({
   title,
   description,
   winnerCount,
@@ -144,161 +150,179 @@ function createGiveaway({
   declinedMessage,
   messages,
 }) {
-  return transaction((data) => {
-    const parsedWinnerCount = Number(winnerCount);
+  const parsedWinnerCount = Number(winnerCount);
 
-    const finalWinnerCount =
-      Number.isFinite(parsedWinnerCount) &&
-      parsedWinnerCount >= 1
-        ? Math.floor(parsedWinnerCount)
-        : 1;
+  const finalWinnerCount =
+    Number.isFinite(parsedWinnerCount) &&
+    parsedWinnerCount >= 1
+      ? Math.floor(parsedWinnerCount)
+      : 1;
 
-    const messageData =
-      messages && typeof messages === 'object'
-        ? messages
-        : {};
+  const messageData =
+    messages && typeof messages === 'object'
+      ? messages
+      : {};
 
-    const finalSuccessMessage =
-      successMessage ||
-      winnerMessage ||
-      messageData.winner ||
-      'Congratulations! Your submission was successful.';
+  const finalSuccessMessage =
+    successMessage ||
+    winnerMessage ||
+    messageData.winner ||
+    'Congratulations! Your submission was successful.';
 
-    const finalDeclinedMessage =
-      declinedMessage ||
-      messageData.declined ||
-      'Your submission was not selected. Thank you for participating.';
+  const finalDeclinedMessage =
+    declinedMessage ||
+    messageData.declined ||
+    'Your submission was not selected. Thank you for participating.';
 
-    const giveaway = {
-      id: id(),
+  const giveaway = {
+    id: id(),
+    title: title || 'New Giveaway',
+    description: description || '',
+    active: false,
+    created_at: Date.now(),
+    winner_count: finalWinnerCount,
+    messages: {
+      winner: finalSuccessMessage,
+      declined: finalDeclinedMessage,
+    },
+    fields: [],
+  };
 
-      title: title || 'New Giveaway',
+  const { data, error } = await supabase
+    .from('giveaways')
+    .insert(giveaway)
+    .select()
+    .single();
 
-      description: description || '',
+  if (error) throw error;
 
+  return normalizeGiveaway(data);
+}
+
+async function updateGiveaway(
+  giveawayId,
+  patch
+) {
+  const giveaway = await getGiveaway(giveawayId);
+
+  if (!giveaway) return null;
+
+  const update = {};
+
+  if (typeof patch.title === 'string') {
+    update.title = patch.title;
+  }
+
+  if (typeof patch.description === 'string') {
+    update.description = patch.description;
+  }
+
+  if (
+    patch.winnerCount !== undefined &&
+    Number.isFinite(Number(patch.winnerCount))
+  ) {
+    update.winner_count = Math.max(
+      1,
+      Math.floor(Number(patch.winnerCount))
+    );
+  }
+
+  const messages = {
+    ...(giveaway.messages || {}),
+  };
+
+  if (typeof patch.successMessage === 'string') {
+    messages.winner = patch.successMessage;
+  }
+
+  if (typeof patch.winnerMessage === 'string') {
+    messages.winner = patch.winnerMessage;
+  }
+
+  if (typeof patch.declinedMessage === 'string') {
+    messages.declined = patch.declinedMessage;
+  }
+
+  if (
+    patch.messages &&
+    typeof patch.messages === 'object'
+  ) {
+    if (typeof patch.messages.winner === 'string') {
+      messages.winner = patch.messages.winner;
+    }
+
+    if (
+      typeof patch.messages.declined === 'string'
+    ) {
+      messages.declined =
+        patch.messages.declined;
+    }
+  }
+
+  update.messages = messages;
+
+  const { data, error } = await supabase
+    .from('giveaways')
+    .update(update)
+    .eq('id', giveawayId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return normalizeGiveaway(data);
+}
+
+async function setActiveGiveaway(giveawayId) {
+  const { error: deactivateError } =
+    await supabase
+      .from('giveaways')
+      .update({
+        active: false,
+      })
+      .neq('id', giveawayId);
+
+  if (deactivateError) {
+    throw deactivateError;
+  }
+
+  const { data, error } = await supabase
+    .from('giveaways')
+    .update({
+      active: true,
+    })
+    .eq('id', giveawayId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return normalizeGiveaway(data);
+}
+
+async function deactivateAllGiveaways() {
+  const { error } = await supabase
+    .from('giveaways')
+    .update({
       active: false,
+    })
+    .eq('active', true);
 
-      createdAt: Date.now(),
-
-      winnerCount: finalWinnerCount,
-
-      messages: {
-        winner: finalSuccessMessage,
-        declined: finalDeclinedMessage,
-      },
-
-      fields: [],
-    };
-
-    data.giveaways.push(giveaway);
-
-    return giveaway;
-  });
+  if (error) throw error;
 }
 
-function updateGiveaway(giveawayId, patch) {
-  return transaction((data) => {
-    const giveaway = data.giveaways.find(
-      (g) => g.id === giveawayId
-    );
+async function deleteGiveaway(giveawayId) {
+  const { error } = await supabase
+    .from('giveaways')
+    .delete()
+    .eq('id', giveawayId);
 
-    if (!giveaway) return null;
-
-    if (typeof patch.title === 'string') {
-      giveaway.title = patch.title;
-    }
-
-    if (typeof patch.description === 'string') {
-      giveaway.description = patch.description;
-    }
-
-    if (
-      patch.winnerCount !== undefined &&
-      Number.isFinite(Number(patch.winnerCount))
-    ) {
-      giveaway.winnerCount = Math.max(
-        1,
-        Math.floor(Number(patch.winnerCount))
-      );
-    }
-
-    if (!giveaway.messages) {
-      giveaway.messages = {};
-    }
-
-    if (typeof patch.successMessage === 'string') {
-      giveaway.messages.winner =
-        patch.successMessage;
-    }
-
-    if (typeof patch.winnerMessage === 'string') {
-      giveaway.messages.winner =
-        patch.winnerMessage;
-    }
-
-    if (typeof patch.declinedMessage === 'string') {
-      giveaway.messages.declined =
-        patch.declinedMessage;
-    }
-
-    if (
-      patch.messages &&
-      typeof patch.messages === 'object'
-    ) {
-      if (typeof patch.messages.winner === 'string') {
-        giveaway.messages.winner =
-          patch.messages.winner;
-      }
-
-      if (
-        typeof patch.messages.declined === 'string'
-      ) {
-        giveaway.messages.declined =
-          patch.messages.declined;
-      }
-    }
-
-    return giveaway;
-  });
-}
-
-function setActiveGiveaway(giveawayId) {
-  return transaction((data) => {
-    data.giveaways.forEach((g) => {
-      g.active = g.id === giveawayId;
-    });
-
-    return (
-      data.giveaways.find(
-        (g) => g.id === giveawayId
-      ) || null
-    );
-  });
-}
-
-function deactivateAllGiveaways() {
-  return transaction((data) => {
-    data.giveaways.forEach((g) => {
-      g.active = false;
-    });
-  });
-}
-
-function deleteGiveaway(giveawayId) {
-  return transaction((data) => {
-    data.giveaways = data.giveaways.filter(
-      (g) => g.id !== giveawayId
-    );
-
-    data.submissions = data.submissions.filter(
-      (s) => s.giveawayId !== giveawayId
-    );
-  });
+  if (error) throw error;
 }
 
 // ---------- Fields ----------
 
-function addField(
+async function addField(
   giveawayId,
   {
     label,
@@ -307,232 +331,290 @@ function addField(
     copyable,
   }
 ) {
-  return transaction((data) => {
-    const giveaway = data.giveaways.find(
-      (g) => g.id === giveawayId
-    );
+  const giveaway = await getGiveaway(giveawayId);
 
-    if (!giveaway) return null;
+  if (!giveaway) return null;
 
-    const maxOrder = giveaway.fields.reduce(
-      (m, f) => Math.max(m, f.order),
-      -1
-    );
+  const fields = Array.isArray(giveaway.fields)
+    ? giveaway.fields.slice()
+    : [];
 
-    const field = {
-      id: id(),
+  const maxOrder = fields.reduce(
+    (m, f) =>
+      Math.max(
+        m,
+        Number.isFinite(Number(f.order))
+          ? Number(f.order)
+          : -1
+      ),
+    -1
+  );
 
-      label: label || 'Untitled field',
+  const field = {
+    id: id(),
+    label: label || 'Untitled field',
+    placeholder: placeholder || '',
+    required: !!required,
+    enabled: true,
+    copyable: !!copyable,
+    order: maxOrder + 1,
+  };
 
-      placeholder: placeholder || '',
+  fields.push(field);
 
-      required: !!required,
+  const { data, error } = await supabase
+    .from('giveaways')
+    .update({
+      fields,
+    })
+    .eq('id', giveawayId)
+    .select()
+    .single();
 
-      enabled: true,
+  if (error) throw error;
 
-      copyable: !!copyable,
+  const updated = normalizeGiveaway(data);
 
-      order: maxOrder + 1,
-    };
-
-    giveaway.fields.push(field);
-
-    return field;
-  });
+  return updated.fields.find(
+    (f) => f.id === field.id
+  );
 }
 
-function updateField(
+async function updateField(
   giveawayId,
   fieldId,
   patch
 ) {
-  return transaction((data) => {
-    const giveaway = data.giveaways.find(
-      (g) => g.id === giveawayId
-    );
+  const giveaway = await getGiveaway(giveawayId);
 
-    if (!giveaway) return null;
+  if (!giveaway) return null;
 
-    const field = giveaway.fields.find(
-      (f) => f.id === fieldId
-    );
+  const fields = Array.isArray(giveaway.fields)
+    ? giveaway.fields.slice()
+    : [];
 
-    if (!field) return null;
+  const field = fields.find(
+    (f) => f.id === fieldId
+  );
 
-    if (typeof patch.label === 'string') {
-      field.label = patch.label;
-    }
+  if (!field) return null;
 
-    if (typeof patch.placeholder === 'string') {
-      field.placeholder = patch.placeholder;
-    }
+  if (typeof patch.label === 'string') {
+    field.label = patch.label;
+  }
 
-    if (typeof patch.required === 'boolean') {
-      field.required = patch.required;
-    }
+  if (typeof patch.placeholder === 'string') {
+    field.placeholder = patch.placeholder;
+  }
 
-    if (typeof patch.enabled === 'boolean') {
-      field.enabled = patch.enabled;
-    }
+  if (typeof patch.required === 'boolean') {
+    field.required = patch.required;
+  }
 
-    if (typeof patch.copyable === 'boolean') {
-      field.copyable = patch.copyable;
-    }
+  if (typeof patch.enabled === 'boolean') {
+    field.enabled = patch.enabled;
+  }
 
-    return field;
-  });
+  if (typeof patch.copyable === 'boolean') {
+    field.copyable = patch.copyable;
+  }
+
+  const { error } = await supabase
+    .from('giveaways')
+    .update({
+      fields,
+    })
+    .eq('id', giveawayId);
+
+  if (error) throw error;
+
+  return field;
 }
 
-function deleteField(giveawayId, fieldId) {
-  return transaction((data) => {
-    const giveaway = data.giveaways.find(
-      (g) => g.id === giveawayId
-    );
+async function deleteField(
+  giveawayId,
+  fieldId
+) {
+  const giveaway = await getGiveaway(giveawayId);
 
-    if (!giveaway) return null;
+  if (!giveaway) return null;
 
-    giveaway.fields = giveaway.fields.filter(
-      (f) => f.id !== fieldId
-    );
+  const fields = (giveaway.fields || []).filter(
+    (f) => f.id !== fieldId
+  );
 
-    return giveaway.fields;
-  });
+  const { error } = await supabase
+    .from('giveaways')
+    .update({
+      fields,
+    })
+    .eq('id', giveawayId);
+
+  if (error) throw error;
+
+  return fields;
 }
 
-function reorderFields(
+async function reorderFields(
   giveawayId,
   orderedFieldIds
 ) {
-  return transaction((data) => {
-    const giveaway = data.giveaways.find(
-      (g) => g.id === giveawayId
-    );
+  const giveaway = await getGiveaway(giveawayId);
 
-    if (!giveaway) return null;
+  if (!giveaway) return null;
 
-    orderedFieldIds.forEach(
-      (fieldId, index) => {
-        const field = giveaway.fields.find(
-          (f) => f.id === fieldId
-        );
+  const fields = giveaway.fields || [];
 
-        if (field) {
-          field.order = index;
-        }
+  orderedFieldIds.forEach(
+    (fieldId, index) => {
+      const field = fields.find(
+        (f) => f.id === fieldId
+      );
+
+      if (field) {
+        field.order = index;
       }
-    );
+    }
+  );
 
-    giveaway.fields.sort(
-      (a, b) => a.order - b.order
-    );
+  fields.sort(
+    (a, b) =>
+      Number(a.order) - Number(b.order)
+  );
 
-    return giveaway.fields;
-  });
+  const { error } = await supabase
+    .from('giveaways')
+    .update({
+      fields,
+    })
+    .eq('id', giveawayId);
+
+  if (error) throw error;
+
+  return fields;
 }
 
 // ---------- Submissions ----------
 
-function addSubmission(
+async function addSubmission(
   giveawayId,
   values
 ) {
-  return transaction((data) => {
-    const giveaway = data.giveaways.find(
-      (g) => g.id === giveawayId
-    );
+  const giveaway = await getGiveaway(giveawayId);
 
-    if (!giveaway) return null;
+  if (!giveaway) return null;
 
-    const configuredWinnerCount =
-      Number(giveaway.winnerCount);
+  const configuredWinnerCount =
+    Number(giveaway.winnerCount);
 
-    const winnerLimit =
-      Number.isFinite(configuredWinnerCount) &&
-      configuredWinnerCount >= 1
-        ? Math.floor(configuredWinnerCount)
-        : 1;
+  const winnerLimit =
+    Number.isFinite(configuredWinnerCount) &&
+    configuredWinnerCount >= 1
+      ? Math.floor(configuredWinnerCount)
+      : 1;
 
-    const successfulCount =
-      data.submissions.filter(
-        (s) =>
-          s.giveawayId === giveawayId &&
-          s.status === 'winner'
-      ).length;
+  const currentWinnerCount =
+    await getCurrentWinnerCount(giveawayId);
 
-    const status =
-      successfulCount < winnerLimit
-        ? 'winner'
-        : 'declined';
+  const status =
+    currentWinnerCount < winnerLimit
+      ? 'winner'
+      : 'declined';
 
-    const submission = {
-      id: id(),
+  const submission = {
+    id: id(),
+    giveaway_id: giveawayId,
+    values: values || {},
+    created_at: Date.now(),
+    status,
+  };
 
-      giveawayId,
+  const { data, error } = await supabase
+    .from('submissions')
+    .insert(submission)
+    .select()
+    .single();
 
-      values,
+  if (error) throw error;
 
-      createdAt: Date.now(),
-
-      status,
-    };
-
-    data.submissions.push(submission);
-
-    return submission;
-  });
+  return normalizeSubmission(data);
 }
 
-function getSubmissionsForGiveaway(
+function normalizeSubmission(row) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    giveawayId: row.giveaway_id,
+    values: row.values || {},
+    createdAt: Number(row.created_at),
+    status: row.status,
+  };
+}
+
+async function getSubmissionsForGiveaway(
   giveawayId
 ) {
-  return readRaw()
-    .submissions
-    .filter(
-      (s) => s.giveawayId === giveawayId
-    )
-    .sort(
-      (a, b) => b.createdAt - a.createdAt
-    );
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .eq('giveaway_id', giveawayId)
+    .order('created_at', {
+      ascending: false,
+    });
+
+  if (error) throw error;
+
+  return (data || []).map(normalizeSubmission);
 }
 
-function getSubmission(submissionId) {
-  return (
-    readRaw()
-      .submissions
-      .find(
-        (s) => s.id === submissionId
-      ) || null
-  );
+async function getSubmission(submissionId) {
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .eq('id', submissionId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return normalizeSubmission(data);
 }
 
 // ---------- Winner helpers ----------
 
-function getWinnerCount(giveawayId) {
-  const giveaway = getGiveaway(giveawayId);
+async function getWinnerCount(giveawayId) {
+  const giveaway = await getGiveaway(giveawayId);
 
   if (!giveaway) return 0;
 
   return Number(giveaway.winnerCount) || 0;
 }
 
-function getCurrentWinnerCount(giveawayId) {
-  return readRaw()
-    .submissions
-    .filter(
-      (s) =>
-        s.giveawayId === giveawayId &&
-        s.status === 'winner'
-    )
-    .length;
-}
-
-function getRemainingWinnerSlots(
+async function getCurrentWinnerCount(
   giveawayId
 ) {
-  const total = getWinnerCount(giveawayId);
+  const { count, error } = await supabase
+    .from('submissions')
+    .select('id', {
+      count: 'exact',
+      head: true,
+    })
+    .eq('giveaway_id', giveawayId)
+    .eq('status', 'winner');
+
+  if (error) throw error;
+
+  return count || 0;
+}
+
+async function getRemainingWinnerSlots(
+  giveawayId
+) {
+  const total =
+    await getWinnerCount(giveawayId);
 
   const current =
-    getCurrentWinnerCount(giveawayId);
+    await getCurrentWinnerCount(giveawayId);
 
   return Math.max(
     0,
@@ -542,7 +624,7 @@ function getRemainingWinnerSlots(
 
 // ---------- Result message ----------
 
-function getSubmissionMessage(
+async function getSubmissionMessage(
   giveawayOrId,
   status
 ) {
@@ -554,7 +636,8 @@ function getSubmissionMessage(
   ) {
     giveaway = giveawayOrId;
   } else {
-    giveaway = getGiveaway(giveawayOrId);
+    giveaway =
+      await getGiveaway(giveawayOrId);
   }
 
   if (!giveaway) return '';
