@@ -13,49 +13,36 @@
 
         <div class="confirm-icon">
           <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="11" fill="rgba(47,143,91,0.12)"/>
-            <path d="M7 12.5L10.2 15.7L17 8.5"
-              stroke="#2f8f5b"
+            <circle cx="12" cy="12" r="11" fill="rgba(57,255,136,0.12)"/>
+            <path
+              d="M7 12.5L10.2 15.7L17 8.5"
+              stroke="#39ff88"
               stroke-width="2"
               stroke-linecap="round"
-              stroke-linejoin="round"/>
+              stroke-linejoin="round"
+            />
           </svg>
         </div>
 
         <h1 class="panel-title">Successful 🎉</h1>
 
-      <% } else if (status === 'declined') { %>
-
-        <div class="confirm-icon">
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="11" fill="rgba(220,53,69,0.12)"/>
-            <path d="M8 8L16 16M16 8L8 16"
-              stroke="#dc3545"
-              stroke-width="2"
-              stroke-linecap="round"/>
-          </svg>
-        </div>
-
-        <h1 class="panel-title">Not selected</h1>
-
       <% } else { %>
 
         <div class="confirm-icon">
           <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="11" fill="rgba(245,158,11,0.12)"/>
-            <path d="M12 7V13"
-              stroke="#f59e0b"
+            <circle cx="12" cy="12" r="11" fill="rgba(220,53,69,0.12)"/>
+            <path
+              d="M8 8L16 16M16 8L8 16"
+              stroke="#dc3545"
               stroke-width="2"
-              stroke-linecap="round"/>
-            <circle cx="12" cy="17" r="1"
-              fill="#f59e0b"/>
+              stroke-linecap="round"
+            />
           </svg>
         </div>
 
-        <h1 class="panel-title">Submission received</h1>
+        <h1 class="panel-title">Declined</h1>
 
       <% } %>
-
 
       <p>
         Your submission for
@@ -63,17 +50,16 @@
         was received.
       </p>
 
-
       <% if (message) { %>
-
-        <div class="notice" style="margin-top:22px; text-align:left;">
+        <div
+          class="notice"
+          style="margin-top:22px; text-align:left;"
+        >
           <span>
             <%= message %>
           </span>
         </div>
-
       <% } %>
-
 
       <% if (submittedFields && submittedFields.length > 0) { %>
 
@@ -101,7 +87,6 @@
         </div>
 
       <% } %>
-
 
       <div
         class="notice"
@@ -136,7 +121,6 @@
 
       </div>
 
-
       <a
         class="btn btn-secondary"
         href="/"
@@ -146,7 +130,6 @@
       </a>
 
     </section>
-
 
     <%- include('partials/site-footer') %>
 
